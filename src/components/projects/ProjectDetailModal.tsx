@@ -7,7 +7,6 @@ import {
   IconStarFilled,
   IconPin,
   IconPinFilled,
-  IconCode,
   IconTerminal2,
   IconFolder,
   IconGitBranch,
@@ -37,6 +36,7 @@ import { ScriptExecutionResult, GitCommitSummary, EnvFileInfo } from '../../type
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
+import { EditorIcon } from '../common/EditorIcons';
 
 type Tab = 'overview' | 'notes' | 'readme' | 'git' | 'env' | 'ports' | 'scripts' | 'ai';
 
@@ -298,7 +298,7 @@ export const ProjectDetailModal: React.FC = () => {
               className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
               title={`Abrir no editor (${settings.default_editor})`}
             >
-              <IconCode size={14} />
+              <EditorIcon editor={settings.default_editor} size={14} />
               <span>Editor</span>
             </button>
 

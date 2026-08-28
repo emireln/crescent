@@ -17,6 +17,7 @@ import {
 import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
 import { ProviderIcon } from '../ai/ProviderIcons';
+import { EditorIcon } from '../common/EditorIcons';
 
 export const SettingsModal: React.FC = () => {
   const { isSettingsOpen, setIsSettingsOpen, settings, saveSetting } = useProjects();
@@ -321,13 +322,14 @@ export const SettingsModal: React.FC = () => {
                   key={opt.id}
                   type="button"
                   onClick={() => setEditor(opt.id)}
-                  className={`px-3 py-1.5 rounded text-xs text-left border transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-xs text-left border transition-colors ${
                     editor === opt.id
-                      ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-semibold'
-                      : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                      ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-semibold shadow-sm'
+                      : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
                   }`}
                 >
-                  {opt.label}
+                  <EditorIcon editor={opt.id} size={15} className={editor === opt.id ? 'text-zinc-100' : 'text-zinc-400'} />
+                  <span>{opt.label}</span>
                 </button>
               ))}
             </div>

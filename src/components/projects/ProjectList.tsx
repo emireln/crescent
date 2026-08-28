@@ -7,7 +7,6 @@ import {
   IconGitBranch,
   IconCircleFilled,
   IconFolderOff,
-  IconCode,
   IconTerminal2,
   IconFolder,
 } from '@tabler/icons-react';
@@ -15,6 +14,7 @@ import { Project } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
+import { EditorIcon } from '../common/EditorIcons';
 
 interface ProjectListProps {
   projects: Project[];
@@ -172,7 +172,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects }) => {
                           className="p-1 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 text-zinc-300 rounded border border-zinc-700 transition-colors"
                           title={`Abrir no editor (${settings.default_editor})`}
                         >
-                          <IconCode size={13} />
+                          <EditorIcon editor={settings.default_editor} size={13} />
                         </button>
                         <button
                           type="button"

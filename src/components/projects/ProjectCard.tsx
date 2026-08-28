@@ -8,7 +8,6 @@ import {
   IconCircleFilled,
   IconFolderOff,
   IconFolderCheck,
-  IconCode,
   IconTerminal2,
   IconFolder,
   IconNotes,
@@ -21,6 +20,7 @@ import { Project } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
+import { EditorIcon } from '../common/EditorIcons';
 
 interface ProjectCardProps {
   project: Project;
@@ -255,7 +255,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             className="p-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-200 text-zinc-200 rounded border border-zinc-700 transition-colors"
             title={`Abrir no editor (${settings.default_editor})`}
           >
-            <IconCode size={14} />
+            <EditorIcon editor={settings.default_editor} size={14} />
           </button>
 
           <button
