@@ -1291,12 +1291,16 @@ fn get_last_modified(path: &Path) -> i64 {
     chrono::Utc::now().timestamp()
 }
 
-fn calculate_folder_size_fast(path: &Path) -> u64 {
+pub fn calculate_folder_size_fast(path: &Path) -> u64 {
     let mut total_size = 0;
-    let ignores = ["node_modules", "target", ".venv", "venv", ".git", "dist", "build", "vendor", ".gradle", "bin", "obj"];
+    let ignores = [
+        "node_modules", "target", ".venv", "venv", ".git", "dist", "build",
+        "vendor", ".gradle", "bin", "obj", ".idea", ".vscode", "coverage",
+        ".turbo", ".cache", ".output", "__pycache__", ".tox",
+    ];
 
     for entry in WalkDir::new(path)
-        .max_depth(3)
+        .max_depth(20)
         .into_iter()
         .filter_entry(|e| {
             let name = e.file_name().to_string_lossy();

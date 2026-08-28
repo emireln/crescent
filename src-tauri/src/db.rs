@@ -352,14 +352,25 @@ pub fn fetch_all_projects(conn: &Connection) -> Result<Vec<Project>, String> {
             updated_at,
         ) = r.map_err(|e| e.to_string())?;
 
-        let exists_on_disk = Path::new(&path).exists();
+        let path_obj = Path::new(&path);
+        let exists_on_disk = path_obj.exists();
+        let mut final_size_bytes = size_bytes;
 
-        // Refresh live git status if folder exists on disk
+        // Refresh live git status and calculate folder size if exists on disk
         if exists_on_disk {
             let git = get_git_info(&path);
             if git.is_repo {
                 git_branch = git.branch;
                 git_dirty = git.dirty;
+            }
+            if final_size_bytes == 0 {
+                final_size_bytes = crate::scanner::calculate_folder_size_fast(path_obj);
+                if final_size_bytes > 0 {
+                    let _ = conn.execute(
+                        "UPDATE projects SET size_bytes = ?1 WHERE id = ?2",
+                        params![final_size_bytes as i64, id],
+                    );
+                }
             }
         }
 
@@ -380,7 +391,7 @@ pub fn fetch_all_projects(conn: &Connection) -> Result<Vec<Project>, String> {
             notes,
             readme_cache,
             last_modified,
-            size_bytes,
+            size_bytes: final_size_bytes,
             git_branch,
             git_dirty,
             exists_on_disk,
@@ -452,12 +463,24 @@ pub fn fetch_project_by_id(conn: &Connection, id: &str) -> Result<Option<Project
         updated_at,
     )) = project
     {
-        let exists_on_disk = Path::new(&path).exists();
+        let path_obj = Path::new(&path);
+        let exists_on_disk = path_obj.exists();
+        let mut final_size_bytes = size_bytes;
+
         if exists_on_disk {
             let git = get_git_info(&path);
             if git.is_repo {
                 git_branch = git.branch;
                 git_dirty = git.dirty;
+            }
+            if final_size_bytes == 0 {
+                final_size_bytes = crate::scanner::calculate_folder_size_fast(path_obj);
+                if final_size_bytes > 0 {
+                    let _ = conn.execute(
+                        "UPDATE projects SET size_bytes = ?1 WHERE id = ?2",
+                        params![final_size_bytes as i64, id],
+                    );
+                }
             }
         }
 
@@ -478,7 +501,7 @@ pub fn fetch_project_by_id(conn: &Connection, id: &str) -> Result<Option<Project
             notes,
             readme_cache,
             last_modified,
-            size_bytes,
+            size_bytes: final_size_bytes,
             git_branch,
             git_dirty,
             exists_on_disk,
@@ -512,7 +535,8 @@ pub fn insert_project(conn: &Connection, input: CreateProjectInput) -> Result<Pr
             .and_then(|d| d.duration_since(std::time::UNIX_EPOCH).ok())
             .map(|d| d.as_secs() as i64)
             .unwrap_or(now);
-        (lm, 0)
+        let sz = crate::scanner::calculate_folder_size_fast(path_obj);
+        (lm, sz)
     } else {
         (now, 0)
     };
