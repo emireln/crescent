@@ -140,6 +140,9 @@ const Dashboard: React.FC = () => {
             value={selectedTech || ''}
             onChange={v => setSelectedTech(v || null)}
             options={stackOptions}
+            placeholder="Todas as Stacks"
+            searchPlaceholder="Filtrar stack..."
+            searchable={stackOptions.length > 5}
             icon={<IconFilter size={13} />}
           />
 
