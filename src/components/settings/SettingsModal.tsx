@@ -155,9 +155,6 @@ export const SettingsModal: React.FC = () => {
                 <IconBrain size={16} className="text-zinc-100" />
                 <span>Inteligência Artificial & Provedores (LLMs)</span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
-                100% Persistido no SQLite
-              </span>
             </div>
 
             {/* High Density Token Optimizer Toggle */}
@@ -187,7 +184,7 @@ export const SettingsModal: React.FC = () => {
                   type="button"
                   onClick={handleTestOllama}
                   disabled={ollamaTesting}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-zinc-850 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 rounded text-[11px] font-medium transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 rounded-md text-[11px] font-medium transition-colors cursor-pointer"
                 >
                   <IconRefresh size={12} className={ollamaTesting ? 'animate-spin' : ''} />
                   <span>{ollamaTesting ? 'Testando...' : 'Testar Conexão'}</span>
