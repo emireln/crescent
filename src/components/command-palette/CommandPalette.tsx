@@ -20,6 +20,9 @@ export const CommandPalette: React.FC = () => {
     setIsNewProjectOpen,
     setIsScannerOpen,
     setIsSettingsOpen,
+    setIsDiskCleanerOpen,
+    setIsWorkspaceModalOpen,
+    setIsCodeSearchOpen,
     openInEditor,
     openInTerminal,
   } = useProjects();
@@ -62,6 +65,36 @@ export const CommandPalette: React.FC = () => {
       },
     },
     {
+      id: 'act-code-search',
+      title: 'Buscar Código nos Projetos',
+      subtitle: 'Pesquisar termos, funções ou variáveis em todos os repositórios (Ctrl+Shift+F)',
+      icon: <IconCode size={16} className="text-zinc-100" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsCodeSearchOpen(true);
+      },
+    },
+    {
+      id: 'act-cleaner',
+      title: 'Limpador de Disco & Dependências',
+      subtitle: 'Remover node_modules, target/ e build artifacts com segurança',
+      icon: <IconSettings size={16} className="text-zinc-100" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsDiskCleanerOpen(true);
+      },
+    },
+    {
+      id: 'act-workspaces',
+      title: 'Gerenciar Workspaces',
+      subtitle: 'Criar e organizar grupos de projetos para abertura em lote',
+      icon: <IconFolderPlus size={16} className="text-zinc-100" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsWorkspaceModalOpen(true);
+      },
+    },
+    {
       id: 'act-scan',
       title: 'Varredura Automática de Diretórios',
       subtitle: 'Escanear pastas e detectar repositórios (Ctrl+F)',
@@ -74,7 +107,7 @@ export const CommandPalette: React.FC = () => {
     {
       id: 'act-settings',
       title: 'Abrir Configurações',
-      subtitle: 'Configurar editor padrão, terminal e banco de dados local',
+      subtitle: 'Configurar editor padrão, terminal e backup do banco SQLite',
       icon: <IconSettings size={16} className="text-zinc-400" />,
       action: () => {
         setIsCommandPaletteOpen(false);

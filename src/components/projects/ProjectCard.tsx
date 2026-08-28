@@ -37,9 +37,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     relocateProject,
     deleteProject,
     settings,
+    portStatuses,
   } = useProjects();
 
   const statusBadge = getStatusBadge(project.status);
+
+  const hasActivePort = project.ports.some(p => portStatuses[p.port]?.is_active);
 
   const handleRelocate = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -193,9 +196,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           )}
 
           {project.ports.length > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-zinc-700 bg-zinc-850 text-zinc-200 text-[11px] font-mono">
+            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-mono ${
+              hasActivePort ? 'border-zinc-600 bg-zinc-800 text-zinc-100' : 'border-zinc-700 bg-zinc-850 text-zinc-200'
+            }`}>
               <IconWorld size={12} />
               <span>:{project.ports.map(p => p.port).join(', ')}</span>
+              {hasActivePort && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" title="Porta ativa em execução" />
+              )}
             </div>
           )}
 

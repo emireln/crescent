@@ -10,12 +10,15 @@ import {
   UpdateProjectInput,
   ScriptExecutionResult,
   DiscoveredProject,
+  Workspace,
+  PortStatusInfo,
 } from '../types';
 import { api } from '../services/api';
 
 interface ProjectContextType {
   projects: Project[];
   tags: Tag[];
+  workspaces: Workspace[];
   settings: AppSettings;
   loading: boolean;
   searchQuery: string;
@@ -26,6 +29,8 @@ interface ProjectContextType {
   setSelectedTagId: (id: string | null) => void;
   selectedTech: string | null;
   setSelectedTech: (tech: string | null) => void;
+  selectedWorkspaceId: string | null;
+  setSelectedWorkspaceId: (id: string | null) => void;
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
   sortOption: SortOption;
@@ -44,6 +49,17 @@ interface ProjectContextType {
   setIsCommandPaletteOpen: (open: boolean) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
+  isDiskCleanerOpen: boolean;
+  setIsDiskCleanerOpen: (open: boolean) => void;
+  isWorkspaceModalOpen: boolean;
+  setIsWorkspaceModalOpen: (open: boolean) => void;
+  isCodeSearchOpen: boolean;
+  setIsCodeSearchOpen: (open: boolean) => void;
+
+  // Port Sentinel
+  portStatuses: Record<number, PortStatusInfo>;
+  refreshPortStatuses: () => Promise<void>;
+  killPort: (port: number) => Promise<string>;
 
   // Filtered & Sorted Projects
   filteredProjects: Project[];
@@ -62,6 +78,7 @@ interface ProjectContextType {
   // Actions
   refreshProjects: () => Promise<void>;
   refreshTags: () => Promise<void>;
+  refreshWorkspaces: () => Promise<void>;
   createProject: (input: CreateProjectInput) => Promise<Project>;
   batchImportProjects: (discovered: DiscoveredProject[]) => Promise<void>;
   updateProject: (input: UpdateProjectInput) => Promise<Project>;
@@ -70,6 +87,12 @@ interface ProjectContextType {
   togglePinned: (id: string) => Promise<void>;
   updateNotes: (id: string, notes: string) => Promise<void>;
   relocateProject: (id: string, newPath: string) => Promise<void>;
+
+  // Workspaces Actions
+  createWorkspace: (name: string, description: string, projectIds: string[]) => Promise<Workspace>;
+  updateWorkspace: (id: string, name: string, description: string, projectIds: string[]) => Promise<Workspace>;
+  deleteWorkspace: (id: string) => Promise<void>;
+  openWorkspaceProjects: (workspace: Workspace) => Promise<void>;
 
   // Tags Actions
   createTag: (name: string, color: string) => Promise<Tag>;
@@ -94,6 +117,8 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [portStatuses, setPortStatuses] = useState<Record<number, PortStatusInfo>>({});
   const [settings, setSettings] = useState<AppSettings>({
     default_editor: 'code',
     custom_editor_path: '',
@@ -109,6 +134,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('all');
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortOption, setSortOption] = useState<SortOption>('last_modified');
 
@@ -118,12 +144,14 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDiskCleanerOpen, setIsDiskCleanerOpen] = useState(false);
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [isCodeSearchOpen, setIsCodeSearchOpen] = useState(false);
 
   const refreshProjects = useCallback(async () => {
     try {
       const data = await api.getProjects();
       setProjects(data);
-      // If activeProject is open, update its reference
       if (activeProject) {
         const updated = data.find(p => p.id === activeProject.id);
         if (updated) setActiveProject(updated);
@@ -142,6 +170,15 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const refreshWorkspaces = useCallback(async () => {
+    try {
+      const data = await api.getWorkspaces();
+      setWorkspaces(data);
+    } catch (err) {
+      console.error('Erro ao carregar workspaces:', err);
+    }
+  }, []);
+
   const refreshSettings = useCallback(async () => {
     try {
       const data = await api.getSettings();
@@ -151,18 +188,54 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const refreshPortStatuses = useCallback(async () => {
+    const allPorts: number[] = [];
+    for (const p of projects) {
+      for (const pt of p.ports) {
+        if (!allPorts.includes(pt.port)) {
+          allPorts.push(pt.port);
+        }
+      }
+    }
+    if (allPorts.length === 0) return;
+
+    try {
+      const statuses = await api.checkPortsStatus(allPorts);
+      const map: Record<number, PortStatusInfo> = {};
+      for (const s of statuses) {
+        map[s.port] = s;
+      }
+      setPortStatuses(map);
+    } catch (err) {
+      console.error('Erro ao verificar status das portas:', err);
+    }
+  }, [projects]);
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([refreshProjects(), refreshTags(), refreshSettings()]);
+      await Promise.all([refreshProjects(), refreshTags(), refreshWorkspaces(), refreshSettings()]);
       setLoading(false);
     };
     init();
   }, []);
 
-  // Global keyboard shortcuts (Ctrl+K, etc.)
+  useEffect(() => {
+    if (projects.length > 0) {
+      refreshPortStatuses();
+      const interval = setInterval(refreshPortStatuses, 10000); // Check ports every 10s
+      return () => clearInterval(interval);
+    }
+  }, [projects, refreshPortStatuses]);
+
+  // Global keyboard shortcuts (Ctrl+K, Ctrl+N, Ctrl+F, Ctrl+Shift+F, etc.)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setIsCodeSearchOpen(prev => !prev);
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(prev => !prev);
@@ -176,7 +249,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsScannerOpen(true);
       }
       if (e.key === 'Escape') {
-        if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
+        if (isCodeSearchOpen) setIsCodeSearchOpen(false);
+        else if (isDiskCleanerOpen) setIsDiskCleanerOpen(false);
+        else if (isWorkspaceModalOpen) setIsWorkspaceModalOpen(false);
+        else if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
         else if (isScannerOpen) setIsScannerOpen(false);
         else if (isNewProjectOpen) setIsNewProjectOpen(false);
         else if (isSettingsOpen) setIsSettingsOpen(false);
@@ -186,12 +262,20 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCommandPaletteOpen, isScannerOpen, isNewProjectOpen, isSettingsOpen, activeProject]);
+  }, [isCommandPaletteOpen, isScannerOpen, isNewProjectOpen, isSettingsOpen, isDiskCleanerOpen, isWorkspaceModalOpen, isCodeSearchOpen, activeProject]);
 
   // Derived filtered & sorted projects
   const filteredProjects = useMemo(() => {
     return projects
       .filter(p => {
+        // Workspace Filter
+        if (selectedWorkspaceId) {
+          const ws = workspaces.find(w => w.id === selectedWorkspaceId);
+          if (ws && !ws.project_ids.includes(p.id)) {
+            return false;
+          }
+        }
+
         // Search Query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
@@ -227,23 +311,15 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return true;
       })
       .sort((a, b) => {
-        // Pinned projects are always first
         if (a.is_pinned && !b.is_pinned) return -1;
         if (!a.is_pinned && b.is_pinned) return 1;
 
-        if (sortOption === 'name') {
-          return a.name.localeCompare(b.name);
-        }
-        if (sortOption === 'size') {
-          return b.size_bytes - a.size_bytes;
-        }
-        if (sortOption === 'status') {
-          return a.status.localeCompare(b.status);
-        }
-        // Default: last_modified
+        if (sortOption === 'name') return a.name.localeCompare(b.name);
+        if (sortOption === 'size') return b.size_bytes - a.size_bytes;
+        if (sortOption === 'status') return a.status.localeCompare(b.status);
         return b.last_modified - a.last_modified;
       });
-  }, [projects, searchQuery, selectedCategory, selectedTagId, selectedTech, sortOption]);
+  }, [projects, searchQuery, selectedCategory, selectedTagId, selectedTech, selectedWorkspaceId, workspaces, sortOption]);
 
   const availableTechs = useMemo(() => {
     const set = new Set<string>();
@@ -329,6 +405,39 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (activeProject?.id === id) setActiveProject(updated);
   };
 
+  const createWorkspace = async (name: string, description: string, projectIds: string[]): Promise<Workspace> => {
+    const ws = await api.createWorkspace(name, description, projectIds);
+    await refreshWorkspaces();
+    return ws;
+  };
+
+  const updateWorkspace = async (id: string, name: string, description: string, projectIds: string[]): Promise<Workspace> => {
+    const ws = await api.updateWorkspace(id, name, description, projectIds);
+    await refreshWorkspaces();
+    return ws;
+  };
+
+  const deleteWorkspace = async (id: string): Promise<void> => {
+    await api.deleteWorkspace(id);
+    if (selectedWorkspaceId === id) setSelectedWorkspaceId(null);
+    await refreshWorkspaces();
+  };
+
+  const openWorkspaceProjects = async (workspace: Workspace): Promise<void> => {
+    const projs = projects.filter(p => workspace.project_ids.includes(p.id));
+    for (const p of projs) {
+      if (p.exists_on_disk) {
+        await api.openInEditor(p.path, settings.default_editor, settings.custom_editor_path);
+      }
+    }
+  };
+
+  const killPort = async (port: number): Promise<string> => {
+    const res = await api.killPort(port);
+    await refreshPortStatuses();
+    return res;
+  };
+
   const createTag = async (name: string, color: string): Promise<Tag> => {
     const t = await api.createTag(name, color);
     await refreshTags();
@@ -355,11 +464,13 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addPort = async (projectId: string, port: number, description: string): Promise<void> => {
     await api.addProjectPort(projectId, port, description);
     await refreshProjects();
+    await refreshPortStatuses();
   };
 
   const deletePort = async (id: string): Promise<void> => {
     await api.deleteProjectPort(id);
     await refreshProjects();
+    await refreshPortStatuses();
   };
 
   const openInEditor = async (project: Project): Promise<void> => {
@@ -396,6 +507,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         projects,
         tags,
+        workspaces,
         settings,
         loading,
         searchQuery,
@@ -406,6 +518,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSelectedTagId,
         selectedTech,
         setSelectedTech,
+        selectedWorkspaceId,
+        setSelectedWorkspaceId,
         viewMode,
         setViewMode,
         sortOption,
@@ -420,11 +534,21 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsCommandPaletteOpen,
         isSettingsOpen,
         setIsSettingsOpen,
+        isDiskCleanerOpen,
+        setIsDiskCleanerOpen,
+        isWorkspaceModalOpen,
+        setIsWorkspaceModalOpen,
+        isCodeSearchOpen,
+        setIsCodeSearchOpen,
+        portStatuses,
+        refreshPortStatuses,
+        killPort,
         filteredProjects,
         availableTechs,
         stats,
         refreshProjects,
         refreshTags,
+        refreshWorkspaces,
         createProject,
         batchImportProjects,
         updateProject,
@@ -433,6 +557,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         togglePinned,
         updateNotes,
         relocateProject,
+        createWorkspace,
+        updateWorkspace,
+        deleteWorkspace,
+        openWorkspaceProjects,
         createTag,
         deleteTag,
         addScript,

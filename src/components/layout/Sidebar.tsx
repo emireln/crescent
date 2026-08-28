@@ -15,6 +15,9 @@ import {
   IconFolderPlus,
   IconTrash,
   IconShieldLock,
+  IconBriefcase,
+  IconDatabase,
+  IconCode,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
@@ -25,6 +28,9 @@ export const Sidebar: React.FC = () => {
     setSelectedCategory,
     selectedTagId,
     setSelectedTagId,
+    workspaces,
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
     tags,
     stats,
     createTag,
@@ -32,6 +38,9 @@ export const Sidebar: React.FC = () => {
     setIsNewProjectOpen,
     setIsScannerOpen,
     setIsSettingsOpen,
+    setIsDiskCleanerOpen,
+    setIsWorkspaceModalOpen,
+    setIsCodeSearchOpen,
   } = useProjects();
 
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -107,25 +116,39 @@ export const Sidebar: React.FC = () => {
           <span>Novo Projeto</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setIsScannerOpen(true)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-200 rounded text-xs transition-colors font-medium"
-        >
-          <IconScan size={15} className="text-zinc-400" />
-          <span>Escanear Diretório</span>
-        </button>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={() => setIsScannerOpen(true)}
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-200 rounded text-[11px] transition-colors font-medium"
+            title="Escanear diretórios (Ctrl + F)"
+          >
+            <IconScan size={14} className="text-zinc-400" />
+            <span>Escanear</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCodeSearchOpen(true)}
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-200 rounded text-[11px] transition-colors font-medium"
+            title="Buscar código em todos os projetos (Ctrl + Shift + F)"
+          >
+            <IconCode size={14} className="text-zinc-400" />
+            <span>Buscar Código</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Navigation List */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-6">
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-5 custom-scrollbar">
+        {/* Navigation Categories */}
         <div>
           <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
             Navegação
           </div>
           <div className="space-y-0.5">
             {navItems.map(item => {
-              const isSelected = selectedCategory === item.id && selectedTagId === null;
+              const isSelected = selectedCategory === item.id && selectedTagId === null && selectedWorkspaceId === null;
               return (
                 <button
                   key={item.id}
@@ -133,6 +156,7 @@ export const Sidebar: React.FC = () => {
                   onClick={() => {
                     setSelectedCategory(item.id);
                     setSelectedTagId(null);
+                    setSelectedWorkspaceId(null);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors ${
                     isSelected
@@ -157,6 +181,54 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
 
+        {/* Workspaces Section */}
+        <div>
+          <div className="flex items-center justify-between px-2 pb-1.5">
+            <div className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase flex items-center gap-1.5">
+              <IconBriefcase size={13} />
+              <span>Workspaces</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsWorkspaceModalOpen(true)}
+              className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+              title="Gerenciar Workspaces"
+            >
+              <IconPlus size={14} />
+            </button>
+          </div>
+
+          <div className="space-y-0.5">
+            {workspaces.map(ws => {
+              const isSelected = selectedWorkspaceId === ws.id;
+              return (
+                <button
+                  key={ws.id}
+                  type="button"
+                  onClick={() => {
+                    if (selectedWorkspaceId === ws.id) {
+                      setSelectedWorkspaceId(null);
+                    } else {
+                      setSelectedWorkspaceId(ws.id);
+                      setSelectedTagId(null);
+                    }
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors ${
+                    isSelected
+                      ? 'bg-zinc-850 text-zinc-100 font-semibold border border-zinc-700'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent'
+                  }`}
+                >
+                  <span className="truncate">{ws.name}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-500">
+                    {ws.project_ids.length}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Tracking Highlights */}
         <div>
           <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
@@ -168,9 +240,10 @@ export const Sidebar: React.FC = () => {
               onClick={() => {
                 setSelectedCategory('dirty');
                 setSelectedTagId(null);
+                setSelectedWorkspaceId(null);
               }}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors ${
-                selectedCategory === 'dirty' && selectedTagId === null
+                selectedCategory === 'dirty' && selectedTagId === null && selectedWorkspaceId === null
                   ? 'bg-zinc-850 text-zinc-100 font-semibold border border-zinc-700'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent'
               }`}
@@ -196,9 +269,10 @@ export const Sidebar: React.FC = () => {
                 onClick={() => {
                   setSelectedCategory('missing');
                   setSelectedTagId(null);
+                  setSelectedWorkspaceId(null);
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors ${
-                  selectedCategory === 'missing' && selectedTagId === null
+                  selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
                     ? 'bg-zinc-850 text-zinc-100 font-semibold border border-zinc-700'
                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent'
                 }`}
@@ -212,6 +286,17 @@ export const Sidebar: React.FC = () => {
                 </span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => setIsDiskCleanerOpen(true)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors border border-transparent"
+            >
+              <div className="flex items-center gap-2">
+                <IconDatabase size={16} className="text-zinc-400" />
+                <span>Limpador de Disco</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -295,6 +380,7 @@ export const Sidebar: React.FC = () => {
                         setSelectedTagId(null);
                       } else {
                         setSelectedTagId(tag.id);
+                        setSelectedWorkspaceId(null);
                       }
                     }}
                     className="flex items-center gap-2 flex-1 text-left truncate"

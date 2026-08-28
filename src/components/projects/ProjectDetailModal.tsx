@@ -24,15 +24,19 @@ import {
   IconDeviceFloppy,
   IconEdit,
   IconEye,
-  IconFolderOff,
   IconCheck,
+  IconGitPullRequest,
+  IconGitCommit,
+  IconFileCode,
+  IconAlertTriangle,
+  IconSquareLetterX,
 } from '@tabler/icons-react';
-import { ScriptExecutionResult } from '../../types';
+import { ScriptExecutionResult, GitCommitSummary, EnvFileInfo } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
 
-type Tab = 'overview' | 'notes' | 'readme' | 'ports' | 'scripts';
+type Tab = 'overview' | 'notes' | 'readme' | 'git' | 'env' | 'ports' | 'scripts';
 
 export const ProjectDetailModal: React.FC = () => {
   const {
@@ -53,6 +57,8 @@ export const ProjectDetailModal: React.FC = () => {
     addPort,
     deletePort,
     runScript,
+    portStatuses,
+    killPort,
   } = useProjects();
 
   if (!activeProject) return null;
@@ -76,9 +82,19 @@ export const ProjectDetailModal: React.FC = () => {
   const [readmeContent, setReadmeContent] = useState<string | null>(null);
   const [readmeLoading, setReadmeLoading] = useState(false);
 
+  // Git Insights state
+  const [recentCommits, setRecentCommits] = useState<GitCommitSummary[]>([]);
+  const [gitLoading, setGitLoading] = useState(false);
+
+  // Env state
+  const [envInfo, setEnvInfo] = useState<EnvFileInfo | null>(null);
+  const [envLoading, setEnvLoading] = useState(false);
+  const [envMsg, setEnvMsg] = useState<string | null>(null);
+
   // Ports state
   const [newPort, setNewPort] = useState<string>('');
   const [newPortDesc, setNewPortDesc] = useState<string>('');
+  const [killingPort, setKillingPort] = useState<number | null>(null);
 
   // Scripts state
   const [newScriptName, setNewScriptName] = useState<string>('');
@@ -93,6 +109,9 @@ export const ProjectDetailModal: React.FC = () => {
     setStatus(activeProject.status);
     setSelectedTagIds(activeProject.tags.map(t => t.id));
     setNotesContent(activeProject.notes);
+    setReadmeContent(null);
+    setRecentCommits([]);
+    setEnvInfo(null);
   }, [activeProject.id]);
 
   // Load README when switching to readme tab
@@ -105,6 +124,28 @@ export const ProjectDetailModal: React.FC = () => {
         .finally(() => setReadmeLoading(false));
     }
   }, [activeTab, activeProject.path, readmeContent]);
+
+  // Load Git commits when switching to git tab
+  useEffect(() => {
+    if (activeTab === 'git') {
+      setGitLoading(true);
+      api.getProjectRecentCommits(activeProject.path, 10)
+        .then(commits => setRecentCommits(commits))
+        .catch(() => setRecentCommits([]))
+        .finally(() => setGitLoading(false));
+    }
+  }, [activeTab, activeProject.path]);
+
+  // Load .env info when switching to env tab
+  useEffect(() => {
+    if (activeTab === 'env') {
+      setEnvLoading(true);
+      api.getEnvInfo(activeProject.path)
+        .then(info => setEnvInfo(info))
+        .catch(() => setEnvInfo(null))
+        .finally(() => setEnvLoading(false));
+    }
+  }, [activeTab, activeProject.path]);
 
   const [overviewSaved, setOverviewSaved] = useState(false);
 
@@ -138,6 +179,28 @@ export const ProjectDetailModal: React.FC = () => {
     await addPort(activeProject.id, portNum, newPortDesc.trim());
     setNewPort('');
     setNewPortDesc('');
+  };
+
+  const handleKillPort = async (port: number) => {
+    setKillingPort(port);
+    try {
+      await killPort(port);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setKillingPort(null);
+    }
+  };
+
+  const handleGenerateEnv = async () => {
+    try {
+      const msg = await api.generateEnvFromExample(activeProject.path);
+      setEnvMsg(msg);
+      const updated = await api.getEnvInfo(activeProject.path);
+      setEnvInfo(updated);
+    } catch (err: any) {
+      setEnvMsg(`Erro: ${err?.message || err}`);
+    }
   };
 
   const handleAddScript = async (e: React.FormEvent) => {
@@ -178,8 +241,8 @@ export const ProjectDetailModal: React.FC = () => {
   const statusBadge = getStatusBadge(status);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 select-none animate-in fade-in duration-150">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -228,7 +291,7 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInEditor(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 text-zinc-200 rounded border border-zinc-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
               title={`Abrir no editor (${settings.default_editor})`}
             >
               <IconCode size={14} />
@@ -239,7 +302,7 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInTerminal(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 text-zinc-200 rounded border border-zinc-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
               title={`Abrir no terminal (${settings.default_terminal})`}
             >
               <IconTerminal2 size={14} />
@@ -250,8 +313,8 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInExplorer(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 text-zinc-200 rounded border border-zinc-700 text-xs font-medium transition-colors"
-              title="Abrir pasta no Windows Explorer"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
+              title="Abrir no Explorer"
             >
               <IconFolder size={14} />
               <span>Explorer</span>
@@ -260,8 +323,7 @@ export const ProjectDetailModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveProject(null)}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors ml-2"
-              title="Fechar"
+              className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors ml-2"
             >
               <IconX size={18} />
             </button>
@@ -269,232 +331,147 @@ export const ProjectDetailModal: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-4 bg-zinc-950 border-b border-zinc-800 flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-              activeTab === 'overview'
-                ? 'border-zinc-100 text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <IconFileText size={14} />
-            <span>Visão Geral</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('notes')}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-              activeTab === 'notes'
-                ? 'border-zinc-100 text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <IconNotes size={14} />
-            <span>Anotações</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('readme')}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-              activeTab === 'readme'
-                ? 'border-zinc-100 text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <IconFileText size={14} />
-            <span>README.md</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('ports')}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-              activeTab === 'ports'
-                ? 'border-zinc-100 text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <IconWorld size={14} />
-            <span>Portas ({activeProject.ports.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('scripts')}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-              activeTab === 'scripts'
-                ? 'border-zinc-100 text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <IconPlayerPlay size={14} />
-            <span>Scripts Rápidos ({activeProject.scripts.length})</span>
-          </button>
+        <div className="flex items-center px-4 bg-zinc-900/60 border-b border-zinc-800 shrink-0 gap-1 overflow-x-auto">
+          {[
+            { id: 'overview', label: 'Visão Geral', icon: <IconNotes size={14} /> },
+            { id: 'notes', label: 'Anotações', icon: <IconEdit size={14} /> },
+            { id: 'readme', label: 'README.md', icon: <IconFileText size={14} /> },
+            { id: 'git', label: 'Git Insights', icon: <IconGitPullRequest size={14} /> },
+            { id: 'env', label: 'Variáveis .env', icon: <IconFileCode size={14} /> },
+            { id: 'ports', label: `Portas (${activeProject.ports.length})`, icon: <IconWorld size={14} /> },
+            { id: 'scripts', label: `Scripts (${activeProject.scripts.length})`, icon: <IconPlayerPlay size={14} /> },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as Tab)}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-zinc-100 text-zinc-100 bg-zinc-900'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Tab Contents */}
-        <div className="flex-1 overflow-y-auto p-5">
+        {/* Modal Body */}
+        <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
           {/* TAB 1: VISÃO GERAL */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Missing warning if folder not found */}
-              {!activeProject.exists_on_disk && (
-                <div className="p-3 bg-zinc-950 border border-zinc-700 rounded flex items-center justify-between text-xs text-zinc-200">
-                  <div className="flex items-center gap-2">
-                    <IconFolderOff size={18} className="text-zinc-400 shrink-0" />
-                    <span>O diretório do projeto não existe no disco (foi movido ou apagado).</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const newP = await api.pickDirectory();
-                      if (newP) await api.relocateProject(activeProject.id, newP);
-                    }}
-                    className="px-3 py-1 bg-zinc-100 hover:bg-white text-zinc-950 rounded font-semibold"
-                  >
-                    Localizar Novo Caminho
-                  </button>
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Left Column: Metadata summary */}
+              <div className="space-y-4 md:border-r md:border-zinc-800 md:pr-6">
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Metadados</h3>
 
-              {/* Status & Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-3 bg-zinc-950 border border-zinc-800 rounded space-y-2">
-                  <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                    Informações do Sistema
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between py-1 border-b border-zinc-800">
-                      <span className="text-zinc-400">Última Modificação:</span>
-                      <span className="text-zinc-200 font-mono flex items-center gap-1">
-                        <IconClock size={13} /> {formatRelativeTime(activeProject.last_modified)}
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="flex items-center gap-1.5">
+                        <IconGitBranch size={14} /> Branch Atual:
                       </span>
+                      <span className="font-mono text-zinc-200">{activeProject.git_branch || 'Sem git'}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-zinc-800">
-                      <span className="text-zinc-400">Tamanho no Disco:</span>
-                      <span className="text-zinc-200 font-mono flex items-center gap-1">
-                        <IconDatabase size={13} /> {formatBytes(activeProject.size_bytes)}
+
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="flex items-center gap-1.5">
+                        <IconCircleFilled size={10} className={activeProject.git_dirty ? 'text-zinc-400' : 'text-zinc-600'} />
+                        Status Git:
                       </span>
+                      <span className="text-zinc-200">{activeProject.git_dirty ? 'Alterações não salvas' : 'Sincronizado'}</span>
                     </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-zinc-400">Cadastrado em:</span>
-                      <span className="text-zinc-200 font-mono">
-                        {new Date(activeProject.created_at * 1000).toLocaleDateString('pt-BR')}
+
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="flex items-center gap-1.5">
+                        <IconClock size={14} /> Última Modificação:
                       </span>
+                      <span className="text-zinc-200">{formatRelativeTime(activeProject.last_modified)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="flex items-center gap-1.5">
+                        <IconDatabase size={14} /> Tamanho no Disco:
+                      </span>
+                      <span className="font-mono text-zinc-200">{formatBytes(activeProject.size_bytes)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-950 border border-zinc-800 rounded space-y-2">
-                  <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                    Status do Git
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between py-1 border-b border-zinc-800">
-                      <span className="text-zinc-400">Branch Atual:</span>
-                      <span className="text-zinc-200 font-mono flex items-center gap-1">
-                        <IconGitBranch size={13} /> {activeProject.git_branch || 'Não é repositório'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-zinc-800">
-                      <span className="text-zinc-400">Alterações Pendentes:</span>
-                      <span className="font-mono flex items-center gap-1 text-zinc-200">
-                        {activeProject.git_dirty ? (
-                          <>
-                            <IconCircleFilled size={6} className="text-zinc-100" />
-                            <span>Arquivos modificados</span>
-                          </>
-                        ) : (
-                          <span>Diretório limpo</span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Edit Form */}
-              <div className="space-y-4 pt-2 border-t border-zinc-800">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">Nome do Projeto</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 font-medium"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-300 mb-1">Status do Projeto</label>
-                    <select
-                      value={status}
-                      onChange={e => setStatus(e.target.value as any)}
-                      className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
-                    >
-                      <option value="active">Ativo</option>
-                      <option value="on_hold">Em Espera</option>
-                      <option value="completed">Concluído</option>
-                      <option value="archived">Arquivado</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1">Descrição</label>
-                  <textarea
-                    rows={2}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder="Adicione uma descrição objetiva sobre o propósito deste projeto..."
-                    className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600 leading-relaxed"
-                  />
-                </div>
-
-                {/* Stacks Detectadas */}
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">Stack Tecnológica Detectada</label>
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="space-y-2 pt-2 border-t border-zinc-800">
+                  <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Tecnologias Detectadas</h3>
+                  <div className="flex flex-wrap gap-1.5">
                     {activeProject.tech_stack.map(tech => (
                       <span
                         key={tech}
-                        className={`text-xs font-mono px-2.5 py-1 rounded border ${getTechColor(tech)}`}
+                        className={`text-[11px] font-mono px-2 py-0.5 rounded border ${getTechColor(tech)}`}
                       >
                         {tech}
                       </span>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Tags Selector */}
-                <div>
-                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">Tags Associadas</label>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {tags.map(t => {
-                      const isAssigned = selectedTagIds.includes(t.id);
+              {/* Right Column: Editable fields */}
+              <div className="md:col-span-2 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-300">Nome do Projeto</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-300">Descrição</label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Descrição breve do objetivo deste projeto..."
+                    className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-300">Status do Projeto</label>
+                  <select
+                    value={status}
+                    onChange={e => setStatus(e.target.value as any)}
+                    className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                  >
+                    <option value="active">Ativo (Em desenvolvimento)</option>
+                    <option value="on_hold">Em Espera</option>
+                    <option value="completed">Concluído</option>
+                    <option value="archived">Arquivado</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-300">Tags Associadas</label>
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-900 border border-zinc-800 rounded max-h-28 overflow-y-auto">
+                    {tags.map(tag => {
+                      const isSelected = selectedTagIds.includes(tag.id);
                       return (
                         <button
-                          key={t.id}
+                          key={tag.id}
                           type="button"
                           onClick={() => {
                             setSelectedTagIds(prev =>
-                              isAssigned ? prev.filter(id => id !== t.id) : [...prev, t.id]
+                              isSelected ? prev.filter(id => id !== tag.id) : [...prev, tag.id]
                             );
                           }}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors border ${
-                            isAssigned
-                              ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-medium'
-                              : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                          className={`text-xs px-2.5 py-0.5 rounded border transition-colors ${
+                            isSelected
+                              ? 'bg-zinc-100 text-zinc-950 border-zinc-100 font-semibold'
+                              : 'bg-zinc-850 text-zinc-400 border-zinc-750 hover:text-zinc-200'
                           }`}
                         >
-                          <span className="text-zinc-500 font-mono">#</span>
-                          <span>{t.name}</span>
-                          {isAssigned && <IconCheck size={12} className="text-zinc-100 ml-0.5" />}
+                          #{tag.name}
                         </button>
                       );
                     })}
@@ -506,10 +483,10 @@ export const ProjectDetailModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleDeleteProject}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-100 rounded border border-zinc-800 text-xs font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-100 rounded border border-zinc-800 text-xs font-medium transition-colors"
                   >
                     <IconTrash size={14} />
-                    <span>Remover Projeto</span>
+                    <span>Remover do Crescent</span>
                   </button>
 
                   <button
@@ -533,7 +510,7 @@ export const ProjectDetailModal: React.FC = () => {
                   Anotações locais em Markdown (salvas em SQLite offline).
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded p-0.5">
+                  <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded p-0.5">
                     <button
                       type="button"
                       onClick={() => setNotesViewMode('edit')}
@@ -587,7 +564,7 @@ export const ProjectDetailModal: React.FC = () => {
                       setNotesSaved(false);
                     }}
                     placeholder="# Comandos de setup, credenciais e arquitetura..."
-                    className={`w-full h-full min-h-[360px] p-3 bg-zinc-950 border border-zinc-800 rounded font-mono text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 resize-none ${
+                    className={`w-full h-full min-h-[360px] p-3 bg-zinc-900 border border-zinc-800 rounded font-mono text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 resize-none ${
                       notesViewMode === 'edit' ? 'col-span-2' : ''
                     }`}
                   />
@@ -595,7 +572,7 @@ export const ProjectDetailModal: React.FC = () => {
 
                 {(notesViewMode === 'preview' || notesViewMode === 'split') && (
                   <div
-                    className={`p-3 bg-zinc-950 border border-zinc-800 rounded overflow-y-auto prose-crescent min-h-[360px] ${
+                    className={`p-3 bg-zinc-900 border border-zinc-800 rounded overflow-y-auto prose-crescent min-h-[360px] ${
                       notesViewMode === 'preview' ? 'col-span-2' : ''
                     }`}
                   >
@@ -612,7 +589,7 @@ export const ProjectDetailModal: React.FC = () => {
 
           {/* TAB 3: README.MD */}
           {activeTab === 'readme' && (
-            <div className="p-4 bg-zinc-950 border border-zinc-800 rounded prose-crescent overflow-y-auto max-h-[500px]">
+            <div className="p-4 bg-zinc-900 border border-zinc-800 rounded prose-crescent overflow-y-auto max-h-[500px]">
               {readmeLoading ? (
                 <div className="text-zinc-400 text-xs py-8 text-center">Carregando README.md...</div>
               ) : readmeContent ? (
@@ -625,10 +602,155 @@ export const ProjectDetailModal: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 4: PORTAS LOCAIS */}
+          {/* TAB 4: GIT INSIGHTS */}
+          {activeTab === 'git' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Branch Atual</span>
+                  <div className="text-sm font-mono font-semibold text-zinc-100 flex items-center gap-1.5">
+                    <IconGitBranch size={15} />
+                    <span>{activeProject.git_branch || 'Sem Git'}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Arquivos Modificados</span>
+                  <div className="text-sm font-mono font-semibold text-zinc-100 flex items-center gap-1.5">
+                    <IconCircleFilled size={10} className={activeProject.git_dirty ? 'text-zinc-300' : 'text-zinc-600'} />
+                    <span>{activeProject.git_dirty ? 'Mudanças pendentes' : 'Árvore Limpa'}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Sincronização Remota</span>
+                  <div className="text-sm font-mono font-semibold text-zinc-100 flex items-center gap-1.5">
+                    <IconGitPullRequest size={15} />
+                    <span>Local</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Últimos Commits</h4>
+                {gitLoading ? (
+                  <div className="py-8 text-center text-xs text-zinc-500">Lendo histórico do repositório...</div>
+                ) : recentCommits.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-zinc-500 bg-zinc-900 border border-zinc-800 rounded">
+                    Nenhum commit encontrado no repositório.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentCommits.map(c => (
+                      <div
+                        key={c.hash}
+                        className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <IconGitCommit size={16} className="text-zinc-500 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-zinc-200 truncate">{c.message}</p>
+                            <p className="text-[11px] text-zinc-500 font-mono">
+                              {c.author} • {c.relative_time}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 bg-zinc-850 border border-zinc-700 rounded font-mono text-[11px] text-zinc-300 shrink-0">
+                          {c.short_hash}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: VARIÁVEIS .ENV */}
+          {activeTab === 'env' && (
+            <div className="space-y-4">
+              {envLoading && (
+                <div className="text-center py-6 text-xs text-zinc-500">Inspecionando arquivos .env...</div>
+              )}
+              {envMsg && (
+                <div className="p-3 bg-zinc-900 border border-zinc-700 rounded text-xs text-zinc-200 flex items-center justify-between">
+                  <span>{envMsg}</span>
+                  <button type="button" onClick={() => setEnvMsg(null)} className="text-zinc-500 hover:text-zinc-300">
+                    <IconX size={14} />
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Arquivo .env</span>
+                  <div className="text-xs font-mono text-zinc-200">
+                    {envInfo?.has_env ? '✓ Presente no projeto' : '✗ Ausente'}
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Template .env.example</span>
+                  <div className="text-xs font-mono text-zinc-200">
+                    {envInfo?.has_example ? '✓ Presente no projeto' : '✗ Não encontrado'}
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Variáveis Faltantes</span>
+                  <div className="text-xs font-mono text-zinc-200">
+                    {envInfo?.missing_keys.length || 0} variável(is)
+                  </div>
+                </div>
+              </div>
+
+              {envInfo?.has_example && !envInfo?.has_env && (
+                <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs font-semibold text-zinc-200">Criar arquivo .env local</h4>
+                    <p className="text-xs text-zinc-400">Copiar automaticamente todas as chaves do .env.example para um novo .env.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerateEnv}
+                    className="px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-xs font-semibold transition-colors"
+                  >
+                    Gerar .env
+                  </button>
+                </div>
+              )}
+
+              {envInfo?.missing_keys && envInfo.missing_keys.length > 0 && (
+                <div className="p-3 bg-zinc-900 border border-zinc-700 rounded-lg space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-semibold">
+                    <IconAlertTriangle size={14} />
+                    <span>Variáveis em .env.example que não estão no seu .env:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {envInfo.missing_keys.map(k => (
+                      <span key={k} className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded font-mono text-[11px] text-zinc-200">
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {envInfo?.env_example_content && (
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Conteúdo do .env.example</h4>
+                  <pre className="p-3 bg-zinc-900 border border-zinc-800 rounded text-xs font-mono text-zinc-300 overflow-x-auto">
+                    {envInfo.env_example_content}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 6: PORTAS LOCAIS */}
           {activeTab === 'ports' && (
             <div className="space-y-4">
-              <form onSubmit={handleAddPort} className="p-3 bg-zinc-950 border border-zinc-800 rounded flex items-center gap-3">
+              <form onSubmit={handleAddPort} className="p-3 bg-zinc-900 border border-zinc-800 rounded flex items-center gap-3">
                 <div className="w-32">
                   <label className="block text-[11px] text-zinc-400 mb-1">Porta (ex: 3000)</label>
                   <input
@@ -636,7 +758,7 @@ export const ProjectDetailModal: React.FC = () => {
                     value={newPort}
                     onChange={e => setNewPort(e.target.value)}
                     placeholder="3000"
-                    className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 font-mono"
+                    className="w-full px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 font-mono"
                   />
                 </div>
                 <div className="flex-1">
@@ -646,7 +768,7 @@ export const ProjectDetailModal: React.FC = () => {
                     value={newPortDesc}
                     onChange={e => setNewPortDesc(e.target.value)}
                     placeholder="Frontend Vite / Backend API..."
-                    className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
+                    className="w-full px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
                   />
                 </div>
                 <div className="pt-5">
@@ -662,53 +784,84 @@ export const ProjectDetailModal: React.FC = () => {
 
               <div className="space-y-2">
                 {activeProject.ports.length === 0 ? (
-                  <div className="text-center py-8 text-zinc-500 text-xs bg-zinc-950 border border-zinc-800 rounded">
+                  <div className="text-center py-8 text-zinc-500 text-xs bg-zinc-900 border border-zinc-800 rounded">
                     Nenhuma porta registrada para este projeto.
                   </div>
                 ) : (
-                  activeProject.ports.map(p => (
-                    <div
-                      key={p.id}
-                      className="p-3 bg-zinc-950 border border-zinc-800 rounded flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="px-2.5 py-1 bg-zinc-850 border border-zinc-700 rounded text-zinc-100 font-mono text-xs font-semibold">
-                          :{p.port}
-                        </span>
-                        <span className="text-xs text-zinc-300">
-                          {p.description || `Serviço local na porta ${p.port}`}
-                        </span>
-                      </div>
+                  activeProject.ports.map(p => {
+                    const statusInfo = portStatuses[p.port];
+                    const isActive = statusInfo?.is_active;
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => api.openUrl(`http://localhost:${p.port}`)}
-                          className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-xs border border-zinc-700 transition-colors"
-                        >
-                          <IconExternalLink size={13} />
-                          <span>Abrir http://localhost:{p.port}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deletePort(p.id)}
-                          className="p-1 text-zinc-500 hover:text-zinc-200 rounded"
-                          title="Remover Porta"
-                        >
-                          <IconTrash size={14} />
-                        </button>
+                    return (
+                      <div
+                        key={p.id}
+                        className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 bg-zinc-850 border border-zinc-700 rounded text-zinc-100 font-mono text-xs font-semibold">
+                              :{p.port}
+                            </span>
+                            {isActive ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                <span>Ativo {statusInfo.process_name ? `(${statusInfo.process_name})` : ''}</span>
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] text-zinc-500 font-mono">
+                                Inativo
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-zinc-300">
+                            {p.description || `Serviço local na porta ${p.port}`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isActive && (
+                            <button
+                              type="button"
+                              onClick={() => handleKillPort(p.port)}
+                              disabled={killingPort === p.port}
+                              className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-xs border border-zinc-700 transition-colors"
+                              title="Encerrar processo travando a porta"
+                            >
+                              <IconSquareLetterX size={13} />
+                              <span>{killingPort === p.port ? 'Encerrando...' : 'Liberar Porta'}</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => api.openUrl(`http://localhost:${p.port}`)}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-xs border border-zinc-700 transition-colors"
+                          >
+                            <IconExternalLink size={13} />
+                            <span>Abrir</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => deletePort(p.id)}
+                            className="p-1 text-zinc-500 hover:text-zinc-200 rounded"
+                            title="Remover Porta"
+                          >
+                            <IconTrash size={14} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
           )}
 
-          {/* TAB 5: SCRIPTS RÁPIDOS */}
+          {/* TAB 7: SCRIPTS RÁPIDOS */}
           {activeTab === 'scripts' && (
             <div className="space-y-4">
-              <form onSubmit={handleAddScript} className="p-3 bg-zinc-950 border border-zinc-800 rounded flex items-center gap-3">
+              <form onSubmit={handleAddScript} className="p-3 bg-zinc-900 border border-zinc-800 rounded flex items-center gap-3">
                 <div className="w-48">
                   <label className="block text-[11px] text-zinc-400 mb-1">Nome do Script</label>
                   <input
@@ -716,7 +869,7 @@ export const ProjectDetailModal: React.FC = () => {
                     value={newScriptName}
                     onChange={e => setNewScriptName(e.target.value)}
                     placeholder="Dev Server"
-                    className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
+                    className="w-full px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600"
                   />
                 </div>
                 <div className="flex-1">
@@ -726,7 +879,7 @@ export const ProjectDetailModal: React.FC = () => {
                     value={newScriptCmd}
                     onChange={e => setNewScriptCmd(e.target.value)}
                     placeholder="npm run dev / cargo check / pytest"
-                    className="w-full px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 font-mono"
+                    className="w-full px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 font-mono"
                   />
                 </div>
                 <div className="pt-5">
@@ -742,14 +895,14 @@ export const ProjectDetailModal: React.FC = () => {
 
               <div className="space-y-2">
                 {activeProject.scripts.length === 0 ? (
-                  <div className="text-center py-8 text-zinc-500 text-xs bg-zinc-950 border border-zinc-800 rounded">
+                  <div className="text-center py-8 text-zinc-500 text-xs bg-zinc-900 border border-zinc-800 rounded">
                     Nenhum script pré-configurado para este projeto.
                   </div>
                 ) : (
                   activeProject.scripts.map(s => (
                     <div
                       key={s.id}
-                      className="p-3 bg-zinc-950 border border-zinc-800 rounded flex items-center justify-between gap-3"
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded flex items-center justify-between gap-3"
                     >
                       <div>
                         <div className="text-xs font-semibold text-zinc-200">{s.name}</div>
@@ -782,7 +935,7 @@ export const ProjectDetailModal: React.FC = () => {
 
               {/* Console output drawer if script executed */}
               {scriptOutput && (
-                <div className="p-3 bg-zinc-950 border border-zinc-800 rounded space-y-2">
+                <div className="p-3 bg-zinc-900 border border-zinc-800 rounded space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-zinc-300">Console de Saída:</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-850 text-zinc-200 border border-zinc-700">

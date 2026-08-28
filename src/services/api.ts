@@ -11,6 +11,17 @@ import {
   UpdateProjectInput,
   AppSettings,
   ScriptExecutionResult,
+  Workspace,
+  PortStatusInfo,
+  ProjectCleanableInfo,
+  CleanResult,
+  GitInfo,
+  GitCommitSummary,
+  HeatmapDay,
+  CodeSearchResult,
+  ProjectSearchTarget,
+  ProjectTemplate,
+  EnvFileInfo,
 } from '../types';
 
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -43,8 +54,7 @@ export const api = {
   },
   createProject: async (input: CreateProjectInput): Promise<Project> => {
     if (isTauri) return await invoke('create_project', { input });
-    const mock = createMockProject(input);
-    return mock;
+    return createMockProject(input);
   },
   updateProject: async (input: UpdateProjectInput): Promise<Project> => {
     if (isTauri) return await invoke('update_project', { input });
@@ -109,6 +119,128 @@ export const api = {
     if (isTauri) return await invoke('delete_project_port', { id });
   },
 
+  // Workspaces
+  getWorkspaces: async (): Promise<Workspace[]> => {
+    if (isTauri) return await invoke('get_workspaces');
+    return getMockWorkspaces();
+  },
+  createWorkspace: async (name: string, description: string, projectIds: string[]): Promise<Workspace> => {
+    if (isTauri) return await invoke('create_workspace', { name, description, projectIds });
+    return { id: Math.random().toString(36).substring(2, 9), name, description, project_ids: projectIds, created_at: Date.now() / 1000 };
+  },
+  updateWorkspace: async (id: string, name: string, description: string, projectIds: string[]): Promise<Workspace> => {
+    if (isTauri) return await invoke('update_workspace', { id, name, description, projectIds });
+    return { id, name, description, project_ids: projectIds, created_at: Date.now() / 1000 };
+  },
+  deleteWorkspace: async (id: string): Promise<void> => {
+    if (isTauri) return await invoke('delete_workspace', { id });
+  },
+
+  // Port Sentinel (Active Port Monitor & Process Killer)
+  checkPortStatus: async (port: number): Promise<PortStatusInfo> => {
+    if (isTauri) return await invoke('check_port_status', { port });
+    return { port, is_active: port === 1420 || port === 3000, pid: 8840, process_name: 'node.exe' };
+  },
+  checkPortsStatus: async (ports: number[]): Promise<PortStatusInfo[]> => {
+    if (isTauri) return await invoke('check_ports_status', { ports });
+    return ports.map(p => ({ port: p, is_active: p === 1420 || p === 3000, pid: 8840, process_name: 'node.exe' }));
+  },
+  killPort: async (port: number): Promise<string> => {
+    if (isTauri) return await invoke('kill_port', { port });
+    return `[Mock] Processo na porta ${port} finalizado.`;
+  },
+
+  // Disk Cleaner
+  analyzeCleanable: async (projectId: string, projectName: string, projectPath: string): Promise<ProjectCleanableInfo> => {
+    if (isTauri) return await invoke('analyze_cleanable', { projectId, projectName, projectPath });
+    return {
+      project_id: projectId,
+      project_name: projectName,
+      project_path: projectPath,
+      items: [
+        { category: 'node_modules', relative_path: 'node_modules', full_path: `${projectPath}\\node_modules`, size_bytes: 280000000 },
+        { category: 'target', relative_path: 'src-tauri/target', full_path: `${projectPath}\\src-tauri\\target`, size_bytes: 950000000 },
+      ],
+      total_cleanable_bytes: 1230000000,
+    };
+  },
+  cleanProjectTargets: async (paths: string[]): Promise<CleanResult> => {
+    if (isTauri) return await invoke('clean_project_targets', { paths });
+    return { success: true, bytes_freed: 1230000000, cleaned_count: paths.length, errors: [] };
+  },
+
+  // Git Insights & Heatmap
+  getProjectGitInfo: async (path: string): Promise<GitInfo> => {
+    if (isTauri) return await invoke('get_project_git_info', { path });
+    return {
+      is_repo: true,
+      branch: 'main',
+      dirty: true,
+      modified_count: 2,
+      last_commit: 'feat: add insights (2 hours ago)',
+      ahead: 1,
+      behind: 0,
+      recent_commits: [
+        { hash: 'a1b2c3d4e5f6', short_hash: 'a1b2c3d', message: 'feat: add insights', author: 'Emir Neto', relative_time: '2 hours ago', timestamp: Date.now() / 1000 - 7200 },
+        { hash: 'b2c3d4e5f6a1', short_hash: 'b2c3d4e', message: 'chore: bump version', author: 'Emir Neto', relative_time: '1 day ago', timestamp: Date.now() / 1000 - 86400 },
+      ],
+    };
+  },
+  getProjectRecentCommits: async (path: string, count: number = 5): Promise<GitCommitSummary[]> => {
+    if (isTauri) return await invoke('get_project_recent_commits', { path, count });
+    return [
+      { hash: 'a1b2c3d4e5f6', short_hash: 'a1b2c3d', message: 'feat: add insights', author: 'Emir Neto', relative_time: '2 hours ago', timestamp: Date.now() / 1000 - 7200 },
+      { hash: 'b2c3d4e5f6a1', short_hash: 'b2c3d4e', message: 'chore: bump version', author: 'Emir Neto', relative_time: '1 day ago', timestamp: Date.now() / 1000 - 86400 },
+    ];
+  },
+  getGitActivity: async (projectPaths: string[]): Promise<HeatmapDay[]> => {
+    if (isTauri) return await invoke('get_git_activity', { projectPaths });
+    return getMockHeatmap();
+  },
+
+  // Global Code Grep
+  searchCode: async (query: string, projects: ProjectSearchTarget[], caseSensitive: boolean = false, maxResults: number = 100): Promise<CodeSearchResult[]> => {
+    if (isTauri) return await invoke('search_code', { query, projects, caseSensitive, maxResults });
+    return [
+      {
+        project_id: 'proj-1',
+        project_name: 'crescent',
+        file_path: 'C:\\Users\\emir.neto\\Desktop\\crescent\\src\\services\\api.ts',
+        relative_path: 'src\\services\\api.ts',
+        line_number: 42,
+        line_content: 'export const api = {',
+      },
+    ];
+  },
+
+  // Templates & Scaffolder
+  getTemplates: async (): Promise<ProjectTemplate[]> => {
+    if (isTauri) return await invoke('get_templates');
+    return getMockTemplates();
+  },
+  scaffoldNewProject: async (templateId: string, targetDir: string, projectName: string): Promise<string> => {
+    if (isTauri) return await invoke('scaffold_new_project', { templateId, targetDir, projectName });
+    return `${targetDir}\\${projectName}`;
+  },
+
+  // Env Manager
+  getEnvInfo: async (projectPath: string): Promise<EnvFileInfo> => {
+    if (isTauri) return await invoke('get_env_info', { projectPath });
+    return {
+      has_env: true,
+      has_example: true,
+      has_local: false,
+      example_keys: ['DATABASE_URL', 'PORT', 'API_SECRET'],
+      env_keys: ['DATABASE_URL', 'PORT'],
+      missing_keys: ['API_SECRET'],
+      env_example_content: 'DATABASE_URL=sqlite://crescent.db\nPORT=3000\nAPI_SECRET=your-secret-here\n',
+    };
+  },
+  generateEnvFromExample: async (projectPath: string): Promise<string> => {
+    if (isTauri) return await invoke('generate_env_from_example', { projectPath });
+    return 'Arquivo .env criado com sucesso!';
+  },
+
   // Scanner
   scanDirectory: async (options: ScanOptions): Promise<DiscoveredProject[]> => {
     if (isTauri) return await invoke('scan_projects_directory', { options });
@@ -123,7 +255,7 @@ export const api = {
       tech_stack: ['React', 'TypeScript', 'Tailwind CSS'],
       last_modified: Date.now() / 1000,
       size_bytes: 4500000,
-      git: { is_repo: true, branch: 'main', dirty: false, modified_count: 0, last_commit: 'chore: initial setup' },
+      git: { is_repo: true, branch: 'main', dirty: false, modified_count: 0, last_commit: 'chore: initial setup', ahead: 0, behind: 0, recent_commits: [] },
       has_readme: true,
       is_existing: false,
     };
@@ -216,6 +348,13 @@ function getMockTags(): Tag[] {
   ];
 }
 
+function getMockWorkspaces(): Workspace[] {
+  return [
+    { id: 'ws-1', name: 'Projetos Pessoais', description: 'Projetos open-source e apps de produtividade', project_ids: ['proj-1'], created_at: Date.now() / 1000 },
+    { id: 'ws-2', name: 'Trabalho & Clientes', description: 'Repositórios de produção', project_ids: [], created_at: Date.now() / 1000 },
+  ];
+}
+
 function getMockProjects(): Project[] {
   return [
     {
@@ -287,7 +426,7 @@ function getMockDiscoveredProjects(): DiscoveredProject[] {
       tech_stack: ['Rust', 'Tauri', 'React', 'TypeScript'],
       last_modified: Date.now() / 1000,
       size_bytes: 42000000,
-      git: { is_repo: true, branch: 'main', dirty: true, modified_count: 3, last_commit: 'feat: scanner implementation' },
+      git: { is_repo: true, branch: 'main', dirty: true, modified_count: 3, last_commit: 'feat: scanner implementation', ahead: 1, behind: 0, recent_commits: [] },
       has_readme: true,
       is_existing: true,
     },
@@ -298,20 +437,75 @@ function getMockDiscoveredProjects(): DiscoveredProject[] {
       tech_stack: ['Go', 'Docker'],
       last_modified: Date.now() / 1000 - 86400 * 2,
       size_bytes: 18000000,
-      git: { is_repo: true, branch: 'develop', dirty: false, modified_count: 0, last_commit: 'fix: auth middleware' },
+      git: { is_repo: true, branch: 'develop', dirty: false, modified_count: 0, last_commit: 'fix: auth middleware', ahead: 0, behind: 0, recent_commits: [] },
       has_readme: true,
       is_existing: false,
     },
+  ];
+}
+
+function getMockHeatmap(): HeatmapDay[] {
+  const days: HeatmapDay[] = [];
+  const now = new Date();
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const count = (i % 3 === 0 || i % 7 === 0) ? (i % 5) + 1 : 0;
+    days.push({ date: dateStr, count });
+  }
+  return days;
+}
+
+function getMockTemplates(): ProjectTemplate[] {
+  return [
     {
-      name: 'dashboard-next',
-      path: 'D:\\Dev\\dashboard-next',
+      id: 'vite-react-ts',
+      name: 'React + TypeScript (Vite)',
+      description: 'Template moderno com React 19, TypeScript, Vite e Tailwind CSS',
+      primary_tech: 'React',
+      tech_stack: ['React', 'TypeScript', 'Vite', 'Tailwind CSS'],
+      command_preview: 'npm create vite@latest <nome> -- --template react-ts',
+    },
+    {
+      id: 'nextjs-app',
+      name: 'Next.js (App Router)',
+      description: 'Fullstack Next.js com App Router, TypeScript, Tailwind CSS e ESLint',
       primary_tech: 'Next.js',
       tech_stack: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS'],
-      last_modified: Date.now() / 1000 - 86400 * 5,
-      size_bytes: 65000000,
-      git: { is_repo: true, branch: 'feature/analytics', dirty: true, modified_count: 5, last_commit: 'feat: add charts' },
-      has_readme: true,
-      is_existing: false,
+      command_preview: 'npx create-next-app@latest <nome> --ts --tailwind --app --eslint',
+    },
+    {
+      id: 'tauri-app',
+      name: 'Tauri v2 Desktop App',
+      description: 'Aplicativo nativo desktop leve com backend em Rust e frontend React',
+      primary_tech: 'Tauri',
+      tech_stack: ['Tauri', 'Rust', 'React', 'TypeScript'],
+      command_preview: 'npm create tauri-app@latest <nome> -- --template react-ts',
+    },
+    {
+      id: 'fastapi-python',
+      name: 'FastAPI REST API',
+      description: 'API assíncrona moderna em Python com FastAPI, Pydantic e Uvicorn',
+      primary_tech: 'FastAPI',
+      tech_stack: ['Python', 'FastAPI', 'Pydantic', 'Uvicorn'],
+      command_preview: 'uv init <nome> / pip install fastapi uvicorn',
+    },
+    {
+      id: 'rust-cli',
+      name: 'Rust CLI / Backend Binary',
+      description: 'Projeto Rust com Cargo, Tokio assíncrono e Serde',
+      primary_tech: 'Rust',
+      tech_stack: ['Rust', 'Tokio', 'Serde'],
+      command_preview: 'cargo new <nome> --bin',
+    },
+    {
+      id: 'go-gin',
+      name: 'Go Gin Web API',
+      description: 'Serviço de alta performance em Go com Gin Framework',
+      primary_tech: 'Go',
+      tech_stack: ['Go', 'Gin'],
+      command_preview: 'go mod init <nome> && go get github.com/gin-gonic/gin',
     },
   ];
 }

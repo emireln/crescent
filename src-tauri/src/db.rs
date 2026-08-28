@@ -32,6 +32,15 @@ pub struct ProjectPort {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Workspace {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub project_ids: Vec<String>,
+    pub created_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
     pub id: String,
     pub name: String,
@@ -169,6 +178,21 @@ pub fn init_db() -> Result<DbState, String> {
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS workspaces (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL UNIQUE,
+            description TEXT DEFAULT '',
+            created_at INTEGER NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS workspace_projects (
+            workspace_id TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            PRIMARY KEY (workspace_id, project_id),
+            FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
         "#,
     )
@@ -458,6 +482,9 @@ pub fn insert_project(conn: &Connection, input: CreateProjectInput) -> Result<Pr
             dirty: false,
             modified_count: 0,
             last_commit: None,
+            ahead: 0,
+            behind: 0,
+            recent_commits: Vec::new(),
         }
     };
 
@@ -864,3 +891,136 @@ pub fn export_all_data(conn: &Connection) -> Result<String, String> {
 
     serde_json::to_string_pretty(&export).map_err(|e| e.to_string())
 }
+
+// -------------------------------------------------------------
+// Workspaces
+// -------------------------------------------------------------
+
+pub fn fetch_all_workspaces(conn: &Connection) -> Result<Vec<Workspace>, String> {
+    let mut stmt = conn
+        .prepare("SELECT id, name, description, created_at FROM workspaces ORDER BY name ASC")
+        .map_err(|e| e.to_string())?;
+
+    let rows = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, i64>(3)?,
+            ))
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut workspaces = Vec::new();
+    for r in rows {
+        let (id, name, description, created_at) = r.map_err(|e| e.to_string())?;
+
+        // Fetch associated project IDs
+        let mut p_stmt = conn
+            .prepare("SELECT project_id FROM workspace_projects WHERE workspace_id = ?1")
+            .map_err(|e| e.to_string())?;
+
+        let p_rows = p_stmt
+            .query_map(params![id], |row| row.get::<_, String>(0))
+            .map_err(|e| e.to_string())?;
+
+        let mut project_ids = Vec::new();
+        for pr in p_rows {
+            if let Ok(pid) = pr {
+                project_ids.push(pid);
+            }
+        }
+
+        workspaces.push(Workspace {
+            id,
+            name,
+            description,
+            project_ids,
+            created_at,
+        });
+    }
+
+    Ok(workspaces)
+}
+
+pub fn insert_workspace(
+    conn: &Connection,
+    name: &str,
+    description: &str,
+    project_ids: Vec<String>,
+) -> Result<Workspace, String> {
+    let id = Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().timestamp();
+
+    conn.execute(
+        "INSERT INTO workspaces (id, name, description, created_at) VALUES (?1, ?2, ?3, ?4)",
+        params![id, name, description, now],
+    )
+    .map_err(|e| format!("Falha ao criar workspace: {}", e))?;
+
+    for pid in &project_ids {
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO workspace_projects (workspace_id, project_id) VALUES (?1, ?2)",
+            params![id, pid],
+        );
+    }
+
+    Ok(Workspace {
+        id,
+        name: name.to_string(),
+        description: description.to_string(),
+        project_ids,
+        created_at: now,
+    })
+}
+
+pub fn update_workspace_record(
+    conn: &Connection,
+    id: &str,
+    name: &str,
+    description: &str,
+    project_ids: Vec<String>,
+) -> Result<Workspace, String> {
+    conn.execute(
+        "UPDATE workspaces SET name = ?1, description = ?2 WHERE id = ?3",
+        params![name, description, id],
+    )
+    .map_err(|e| format!("Falha ao atualizar workspace: {}", e))?;
+
+    // Replace project relations
+    let _ = conn.execute(
+        "DELETE FROM workspace_projects WHERE workspace_id = ?1",
+        params![id],
+    );
+
+    for pid in &project_ids {
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO workspace_projects (workspace_id, project_id) VALUES (?1, ?2)",
+            params![id, pid],
+        );
+    }
+
+    let created_at: i64 = conn
+        .query_row(
+            "SELECT created_at FROM workspaces WHERE id = ?1",
+            params![id],
+            |r| r.get(0),
+        )
+        .unwrap_or_else(|_| chrono::Utc::now().timestamp());
+
+    Ok(Workspace {
+        id: id.to_string(),
+        name: name.to_string(),
+        description: description.to_string(),
+        project_ids,
+        created_at,
+    })
+}
+
+pub fn delete_workspace_record(conn: &Connection, id: &str) -> Result<(), String> {
+    conn.execute("DELETE FROM workspaces WHERE id = ?1", params![id])
+        .map_err(|e| format!("Falha ao excluir workspace: {}", e))?;
+    Ok(())
+}
+

@@ -1,29 +1,50 @@
 pub mod actions;
+pub mod cleaner;
+pub mod code_search;
 pub mod db;
+pub mod env_manager;
 pub mod git;
+pub mod port_sentinel;
+pub mod scaffolder;
 pub mod scanner;
+pub mod tray;
 pub mod window;
 
 use std::collections::HashMap;
+use std::path::Path;
 use tauri::State;
 
 use actions::{
     execute_project_script, open_browser_url, open_editor, open_explorer, open_terminal,
     read_project_readme, ScriptExecutionResult,
 };
+use cleaner::{
+    analyze_project_cleanable, clean_selected_paths, CleanResult, ProjectCleanableInfo,
+};
+use code_search::{search_code_across_projects, CodeSearchResult, ProjectSearchTarget};
 use db::{
     add_port_record, add_script_record, create_tag_record, delete_port_record,
-    delete_project_record, delete_script_record, delete_tag_record, export_all_data,
-    fetch_all_projects, fetch_all_settings, fetch_all_tags, fetch_project_by_id,
-    init_db, insert_project, save_project_notes, save_setting_record, toggle_project_favorite,
-    toggle_project_pinned, update_project_path, update_project_record, CreateProjectInput,
-    DbState, Project, ProjectPort, ProjectScript, Tag, UpdateProjectInput,
+    delete_project_record, delete_script_record, delete_tag_record, delete_workspace_record,
+    export_all_data, fetch_all_projects, fetch_all_settings, fetch_all_tags, fetch_all_workspaces,
+    fetch_project_by_id, init_db, insert_project, insert_workspace, save_project_notes,
+    save_setting_record, toggle_project_favorite, toggle_project_pinned, update_project_path,
+    update_project_record, update_workspace_record, CreateProjectInput, DbState, Project,
+    ProjectPort, ProjectScript, Tag, UpdateProjectInput, Workspace,
 };
+use env_manager::{create_env_from_example, inspect_env_files, EnvFileInfo};
+use git::{
+    get_activity_heatmap, get_git_info, get_recent_commits, GitCommitSummary, GitInfo, HeatmapDay,
+};
+use port_sentinel::{
+    check_multiple_ports, check_single_port, kill_process_on_port, PortStatusInfo,
+};
+use scaffolder::{get_available_templates, scaffold_project, ProjectTemplate};
 use scanner::{analyze_single_project, scan_directory, DiscoveredProject, ScanOptions};
+use tray::setup_tray;
 use window::{window_close, window_is_maximized, window_minimize, window_toggle_maximize};
 
 // -------------------------------------------------------------
-// Commands
+// Core Project Commands
 // -------------------------------------------------------------
 
 #[tauri::command]
@@ -80,6 +101,10 @@ fn relocate_project(state: State<DbState>, id: String, new_path: String) -> Resu
     update_project_path(&conn, &id, &new_path)
 }
 
+// -------------------------------------------------------------
+// Tags
+// -------------------------------------------------------------
+
 #[tauri::command]
 fn get_tags(state: State<DbState>) -> Result<Vec<Tag>, String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
@@ -97,6 +122,10 @@ fn delete_tag(state: State<DbState>, id: String) -> Result<(), String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_tag_record(&conn, &id)
 }
+
+// -------------------------------------------------------------
+// Scripts & Ports
+// -------------------------------------------------------------
 
 #[tauri::command]
 fn add_project_script(
@@ -131,6 +160,151 @@ fn delete_project_port(state: State<DbState>, id: String) -> Result<(), String> 
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_port_record(&conn, &id)
 }
+
+// -------------------------------------------------------------
+// Workspaces
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn get_workspaces(state: State<DbState>) -> Result<Vec<Workspace>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    fetch_all_workspaces(&conn)
+}
+
+#[tauri::command]
+fn create_workspace(
+    state: State<DbState>,
+    name: String,
+    description: String,
+    project_ids: Vec<String>,
+) -> Result<Workspace, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    insert_workspace(&conn, &name, &description, project_ids)
+}
+
+#[tauri::command]
+fn update_workspace(
+    state: State<DbState>,
+    id: String,
+    name: String,
+    description: String,
+    project_ids: Vec<String>,
+) -> Result<Workspace, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    update_workspace_record(&conn, &id, &name, &description, project_ids)
+}
+
+#[tauri::command]
+fn delete_workspace(state: State<DbState>, id: String) -> Result<(), String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    delete_workspace_record(&conn, &id)
+}
+
+// -------------------------------------------------------------
+// Port Sentinel (Active TCP Monitor & Process Killer)
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn check_port_status(port: u16) -> PortStatusInfo {
+    check_single_port(port)
+}
+
+#[tauri::command]
+fn check_ports_status(ports: Vec<u16>) -> Vec<PortStatusInfo> {
+    check_multiple_ports(ports)
+}
+
+#[tauri::command]
+fn kill_port(port: u16) -> Result<String, String> {
+    kill_process_on_port(port)
+}
+
+// -------------------------------------------------------------
+// Disk Cleaner
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn analyze_cleanable(
+    project_id: String,
+    project_name: String,
+    project_path: String,
+) -> ProjectCleanableInfo {
+    analyze_project_cleanable(&project_id, &project_name, &project_path)
+}
+
+#[tauri::command]
+fn clean_project_targets(paths: Vec<String>) -> CleanResult {
+    clean_selected_paths(paths)
+}
+
+// -------------------------------------------------------------
+// Advanced Git Insights & Heatmap
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn get_project_git_info(path: String) -> GitInfo {
+    get_git_info(path)
+}
+
+#[tauri::command]
+fn get_project_recent_commits(path: String, count: usize) -> Vec<GitCommitSummary> {
+    get_recent_commits(Path::new(&path), count)
+}
+
+#[tauri::command]
+fn get_git_activity(project_paths: Vec<String>) -> Vec<HeatmapDay> {
+    get_activity_heatmap(project_paths)
+}
+
+// -------------------------------------------------------------
+// Global Code Grep
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn search_code(
+    query: String,
+    projects: Vec<ProjectSearchTarget>,
+    case_sensitive: bool,
+    max_results: usize,
+) -> Vec<CodeSearchResult> {
+    search_code_across_projects(&query, projects, case_sensitive, max_results)
+}
+
+// -------------------------------------------------------------
+// Templates & Scaffolder
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn get_templates() -> Vec<ProjectTemplate> {
+    get_available_templates()
+}
+
+#[tauri::command]
+fn scaffold_new_project(
+    template_id: String,
+    target_dir: String,
+    project_name: String,
+) -> Result<String, String> {
+    scaffold_project(&template_id, &target_dir, &project_name)
+}
+
+// -------------------------------------------------------------
+// Env Manager (.env & .env.example)
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn get_env_info(project_path: String) -> EnvFileInfo {
+    inspect_env_files(&project_path)
+}
+
+#[tauri::command]
+fn generate_env_from_example(project_path: String) -> Result<String, String> {
+    create_env_from_example(&project_path)
+}
+
+// -------------------------------------------------------------
+// Scanner & Launchers
+// -------------------------------------------------------------
 
 #[tauri::command]
 fn scan_projects_directory(
@@ -217,6 +391,13 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(db_state)
+        .setup(|app| {
+            // Setup Windows System Tray
+            if let Err(e) = setup_tray(app.handle()) {
+                eprintln!("[Crescent Tray Error] {}", e);
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             window_minimize,
             window_toggle_maximize,
@@ -238,6 +419,23 @@ pub fn run() {
             delete_project_script,
             add_project_port,
             delete_project_port,
+            get_workspaces,
+            create_workspace,
+            update_workspace,
+            delete_workspace,
+            check_port_status,
+            check_ports_status,
+            kill_port,
+            analyze_cleanable,
+            clean_project_targets,
+            get_project_git_info,
+            get_project_recent_commits,
+            get_git_activity,
+            search_code,
+            get_templates,
+            scaffold_new_project,
+            get_env_info,
+            generate_env_from_example,
             scan_projects_directory,
             analyze_directory,
             open_project_in_editor,

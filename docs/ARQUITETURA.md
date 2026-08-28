@@ -7,7 +7,7 @@ Neste documento, eu descrevo em detalhes como estruturei a arquitetura interna d
 ## 1. Visão Geral da Arquitetura
 
 O Crescent opera como uma aplicação desktop híbrida utilizando o **Tauri v2**:
-- **Backend (Rust):** Responsável pelo acesso ao sistema de arquivos local, execução de processos externos (IDEs, terminais, scripts), controle de janelas nativas, monitoramento do Git e gerenciamento do banco de dados SQLite local.
+- **Backend (Rust):** Responsável pelo acesso ao sistema de arquivos local, execução de processos externos (IDEs, terminais, scripts), controle de janelas nativas, monitoramento do Git, gerenciamento de portas TCP, limpeza de disco, busca global de código, gerador de projetos, inspetor de `.env` e banco de dados SQLite local.
 - **Frontend (React 19 + TypeScript):** Responsável por toda a renderização da interface, gerenciamento de estado reativo, atalhos de teclado e apresentação dos dados.
 - **Camada de Comunicação (IPC Tauri):** Todas as chamadas entre React e Rust acontecem através de comandos assíncronos registrados com a macro `#[tauri::command]`.
 
@@ -18,8 +18,14 @@ graph TD
     subgraph "Backend Rust (Tauri v2)"
         IPC <--> DB[(SQLite: %AppData%/Crescent/crescent.db)]
         IPC <--> Scanner[Motor de Varredura & Linguist]
-        IPC <--> Git[Git Inspector: Branch / Dirty]
+        IPC <--> Sentinel[Port Sentinel & Process Killer]
+        IPC <--> Cleaner[Disk Cleaner & Pruner]
+        IPC <--> CodeSearch[Global Code Grep]
+        IPC <--> Git[Git Inspector: Ahead/Behind & Commits]
+        IPC <--> Scaffolder[Project Templates Scaffolder]
+        IPC <--> EnvMgr[Env Inspector & Generator]
         IPC <--> Actions[Lançador de IDEs / Terminais / Scripts]
+        IPC <--> Tray[Windows System Tray]
         IPC <--> Win[Controle de Janela Nativa]
     end
 
@@ -75,6 +81,23 @@ CREATE TABLE IF NOT EXISTS project_tags (
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
+-- Tabela de Workspaces / Grupos de Projetos
+CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    created_at INTEGER NOT NULL
+);
+
+-- Relacionamento N:N entre workspaces e projetos
+CREATE TABLE IF NOT EXISTS workspace_projects (
+    workspace_id TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    PRIMARY KEY (workspace_id, project_id),
+    FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
 -- Scripts rápidos associados a cada projeto
 CREATE TABLE IF NOT EXISTS project_scripts (
     id TEXT PRIMARY KEY,
@@ -102,34 +125,35 @@ CREATE TABLE IF NOT EXISTS settings (
 
 ---
 
-## 3. Motor de Varredura e Detecção Linguística (`src-tauri/src/scanner.rs`)
+## 3. Módulos Especializados do Backend Rust
 
-Eu construí o motor de varredura recursiva baseado em duas etapas complementares:
+### 3.1. Port Sentinel (`src-tauri/src/port_sentinel.rs`)
+- Inspeciona portas TCP ativas no Windows através de `netstat -ano -p tcp` sem criar janelas (`CREATE_NO_WINDOW`).
+- Mapeia o PID e descobre o executável responsável (`node.exe`, `python.exe`, `cargo.exe`, etc.) via `tasklist`.
+- Fornece o comando `kill_process_on_port` para encerrar o processo travando a porta via `taskkill /PID <pid> /F`.
 
-### Etapa 1: Inspeção de Manifestos e Configurações
-- **Rust:** `Cargo.toml` -> Extrai o nome do pacote e dependências principais (`tauri`, `tokio`, `axum`, `actix-web`, `bevy`, `leptos`, `yew`, etc.).
-- **Node / JS / TS:** `package.json`, `bun.lockb`, `deno.json` -> Detecta frameworks como Next.js, Nuxt, SvelteKit, Astro, Remix, SolidJS, Angular, NestJS, Express, Fastify, Hono, React Native, Electron, etc.
-- **Python:** `pyproject.toml`, `requirements.txt`, `Pipfile`, `manage.py` -> Detecta Django, FastAPI, Flask, Streamlit, PyTorch, TensorFlow, Hugging Face, LangChain, etc.
-- **Go:** `go.mod` -> Extrai o nome do módulo e dependências (`gin`, `fiber`, `echo`, `gorm`, `cobra`, `wails`, `templ`).
-- **C# / .NET:** `*.sln`, `*.csproj`, `*.fsproj` -> Detecta ASP.NET Core, Blazor, .NET MAUI, Unity, WPF.
-- **C / C++:** `CMakeLists.txt`, `Makefile`, `meson.build` -> Detecta Qt, OpenCV, Unreal Engine.
-- **Java / Kotlin / JVM:** `pom.xml`, `build.gradle`, `build.gradle.kts`, `build.sbt` -> Detecta Spring Boot, Quarkus, Android, Ktor, Scala.
-- **PHP:** `composer.json`, `wp-config.php`, `artisan` -> Detecta Laravel, Symfony, WordPress.
-- **Ruby:** `Gemfile` -> Detecta Ruby on Rails, Sinatra, Jekyll.
-- **Elixir / Dart / Swift / Zig / Lua / Solidity / Cloud:** `mix.exs`, `pubspec.yaml`, `Package.swift`, `build.zig`, `init.lua`, `hardhat.config.js`, `Dockerfile`, `k8s/`, `terraform/`.
+### 3.2. Disk Cleaner & Pruner (`src-tauri/src/cleaner.rs`)
+- Analisa os tamanhos exatos das pastas de build e dependências (`node_modules`, `target`, `.venv`, `dist`, `build`, `.next`, `.nuxt`, `.turbo`).
+- Executa a remoção segura em lote para liberar dezenas de gigabytes de espaço em disco com 1 clique.
 
-### Etapa 2: Perfilamento por Extensão de Arquivos (Estilo GitHub Linguist)
-Quando um projeto contém múltiplos arquivos de código, o Crescent faz uma contagem das extensões (`.rs`, `.ts`, `.py`, `.go`, `.cs`, `.cpp`, `.java`, etc.) para identificar a linguagem predominante e calcular com precisão as linguagens secundárias utilizadas.
+### 3.3. Busca Global de Código / Grep (`src-tauri/src/code_search.rs`)
+- Percorre todos os repositórios cadastrados usando `WalkDir` e buffers de leitura rápida em Rust.
+- Ignora pastas pesadas e arquivos binários (> 1MB ou extensões de imagem/executável).
+- Retorna o número da linha, caminho relativo e snippet de código para navegação direta.
 
----
+### 3.4. Gerador de Projetos por Templates (`src-tauri/src/scaffolder.rs`)
+- Cria projetos estruturados com Vite React/TS, Next.js, Tauri v2, FastAPI, Go Gin e Rust CLI.
+- Registra automaticamente o novo projeto no banco de dados local do Crescent.
 
-## 4. Integração Git & Sistema de Ações (`src-tauri/src/git.rs` & `actions.rs`)
+### 3.5. Gerenciador de Variáveis `.env` (`src-tauri/src/env_manager.rs`)
+- Compara arquivos `.env` e `.env.example` para alertar o desenvolvedor sobre chaves de configuração faltantes.
+- Permite gerar o `.env` inicial com 1 clique.
 
-### Git Inspector:
-- Executa comandos `git status` e `git rev-parse` com a flag `CREATE_NO_WINDOW` no Windows para inspecionar a branch atual e se há arquivos modificados ou uncommitted, sem abrir janelas pretas de terminal na tela.
+### 3.6. Git Insights & Heatmap (`src-tauri/src/git.rs`)
+- Rastreia contagem de commits locais não enviados (*ahead/behind* com `git rev-list --count @{u}..HEAD`).
+- Extrai histórico formatado dos últimos commits do projeto (`hash`, `short_hash`, `mensagem`, `autor`, `tempo_relativo`).
+- Agrega dados de commits dos últimos 90 dias de todos os repositórios para alimentar o Heatmap de Produtividade Local.
 
-### Lançador de IDEs e Terminais:
-- **Editores Suportados:** VS Code (`code`), Cursor (`cursor`), Zed (`zed`), IntelliJ IDEA (`idea`), WebStorm (`webstorm`), PyCharm (`pycharm`) e executáveis customizados.
-- **Terminais Suportados:** Windows Terminal (`wt.exe -d <path>`), PowerShell (`powershell.exe -NoExit -Command Set-Location -LiteralPath '<path>'`), Git Bash (`git-bash.exe --cd=<path>`), Prompt de Comando (`cmd.exe /k cd /d "<path>"`) e terminais customizados.
-- **Explorador de Arquivos:** `explorer.exe <path>`.
-- **Scripts de Projeto:** `cmd /c <comando>` com captura assíncrona de `stdout` e `stderr` em tempo real para exibir o log de execução diretamente no modal do projeto.
+### 3.7. System Tray no Windows (`src-tauri/src/tray.rs`)
+- Registra o ícone do Crescent na barra de tarefas do Windows.
+- Permite abrir a janela principal, acessar a paleta de comandos ou sair do aplicativo com clique rápido.

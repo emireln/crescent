@@ -6,6 +6,7 @@ import {
   IconSortDescending,
   IconX,
   IconLoader2,
+  IconBriefcase,
 } from '@tabler/icons-react';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { Titlebar } from './components/layout/Titlebar';
@@ -17,6 +18,9 @@ import { NewProjectModal } from './components/projects/NewProjectModal';
 import { ScannerModal } from './components/scanner/ScannerModal';
 import { CommandPalette } from './components/command-palette/CommandPalette';
 import { SettingsModal } from './components/settings/SettingsModal';
+import { DiskCleanerModal } from './components/cleaner/DiskCleanerModal';
+import { WorkspaceModal } from './components/workspaces/WorkspaceModal';
+import { CodeSearchModal } from './components/code-search/CodeSearchModal';
 import { SortOption } from './types';
 
 const Dashboard: React.FC = () => {
@@ -29,6 +33,9 @@ const Dashboard: React.FC = () => {
     selectedTech,
     setSelectedTech,
     availableTechs,
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
+    workspaces,
     viewMode,
     setViewMode,
     sortOption,
@@ -37,6 +44,11 @@ const Dashboard: React.FC = () => {
   } = useProjects();
 
   const getCategoryTitle = () => {
+    if (selectedWorkspaceId) {
+      const ws = workspaces.find(w => w.id === selectedWorkspaceId);
+      if (ws) return `Workspace: ${ws.name}`;
+    }
+
     switch (selectedCategory) {
       case 'favorites':
         return 'Favoritos & Fixados';
@@ -58,12 +70,13 @@ const Dashboard: React.FC = () => {
   };
 
   const activeTag = tags.find(t => t.id === selectedTagId);
+  const activeWorkspace = workspaces.find(w => w.id === selectedWorkspaceId);
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-2.5rem)] overflow-hidden bg-zinc-950">
       {/* Top Filter and Controls Toolbar */}
       <div className="h-12 border-b border-zinc-800 px-5 flex items-center justify-between shrink-0 bg-zinc-950 select-none">
-        {/* Left: Section Title & Active Tag Filter Badge */}
+        {/* Left: Section Title & Active Tag / Workspace Filter Badge */}
         <div className="flex items-center gap-3">
           <h1 className="text-sm font-semibold text-zinc-50 flex items-center gap-2">
             <span>{getCategoryTitle()}</span>
@@ -71,6 +84,21 @@ const Dashboard: React.FC = () => {
               {filteredProjects.length}
             </span>
           </h1>
+
+          {activeWorkspace && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-850 border border-zinc-700 text-xs text-zinc-200">
+              <IconBriefcase size={12} className="text-zinc-400" />
+              <span>{activeWorkspace.name}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedWorkspaceId(null)}
+                className="text-zinc-400 hover:text-white ml-0.5"
+                title="Sair do filtro de workspace"
+              >
+                <IconX size={12} />
+              </button>
+            </div>
+          )}
 
           {activeTag && (
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-850 border border-zinc-700 text-xs text-zinc-200">
@@ -174,6 +202,9 @@ const Dashboard: React.FC = () => {
       <ScannerModal />
       <CommandPalette />
       <SettingsModal />
+      <DiskCleanerModal />
+      <WorkspaceModal />
+      <CodeSearchModal />
     </div>
   );
 };
