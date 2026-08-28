@@ -1,6 +1,6 @@
 [package]
 name = "crescent"
-version = "0.1.19"
+version = "0.1.20"
 description = "Crescent - Gerenciador Local de Projetos"
 authors = ["Emir Neto"]
 edition = "2021"
