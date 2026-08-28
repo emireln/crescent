@@ -32,13 +32,13 @@ O **Crescent** é um aplicativo desktop nativo para Windows projetado para alta 
 ## 3. Diretrizes de Design & UI/UX (Monocromático Estrito)
 
 Qualquer alteração na interface **deve obedecer estritamente às seguintes regras**:
-1. **Paleta de Cores Monocromática:**
-   - **Background Principal:** `bg-zinc-950` / `#09090b` (preto sólido profundo).
-   - **Superfícies & Painéis:** `bg-zinc-900` para cards/diálogos e `bg-zinc-850`/`bg-zinc-800` para hover e estados ativos.
-   - **Bordas:** `border-zinc-800` e `border-zinc-700` nítidas de 1px.
-   - **Texto:** `text-zinc-50` / `text-zinc-100` (alto contraste), `text-zinc-400` / `text-zinc-500` (secundário).
-   - **Ações Primárias:** `bg-zinc-100 text-zinc-950 hover:bg-white` (branco sólido com texto preto).
-   - **Badges e Tags:** `bg-zinc-850 border-zinc-700 text-zinc-200` (sem cores saturadas).
+1. **Paleta de Cores Monocromática (Cinza Escuro / Charcoal Soft Dark):**
+   - **Background Principal:** `bg-zinc-950` / `#121215` (cinza escuro suave e confortável para os olhos, sem preto absoluto).
+   - **Superfícies & Painéis:** `bg-zinc-900` / `#1a1a20` para cards, diálogos e inputs.
+   - **Hover & Estados Ativos:** `bg-zinc-850` / `#24242c` e `bg-zinc-800` / `#2e2e38`.
+   - **Texto:** `text-zinc-100` / `#f2f2f7` (alto contraste suave), `text-zinc-400` / `#a5a5b8` (secundário).
+   - **Ações Primárias:** `bg-zinc-100 text-zinc-950 hover:bg-zinc-200` (sólido claro).
+   - **Badges e Tags:** `bg-zinc-850 text-zinc-200` (sem cores saturadas).
 2. **Anti-Slop / Zero Blur:**
    - **Proibido:** Glassmorphism, `backdrop-blur`, gradientes coloridos e transparências artificiais.
    - Todas as superfícies devem ser sólidas e com contraste nítido.
