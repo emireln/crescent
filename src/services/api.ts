@@ -207,12 +207,12 @@ export const api = {
 // Fallback mock data for web previews
 function getMockTags(): Tag[] {
   return [
-    { id: '1', name: 'Trabalho', color: '#3b82f6' },
-    { id: '2', name: 'Estudo', color: '#10b981' },
-    { id: '3', name: 'Freelance', color: '#f59e0b' },
-    { id: '4', name: 'Rust', color: '#ef4444' },
-    { id: '5', name: 'Web', color: '#8b5cf6' },
-    { id: '6', name: 'Mobile', color: '#ec4899' },
+    { id: '1', name: 'Trabalho', color: '#a1a1aa' },
+    { id: '2', name: 'Estudo', color: '#a1a1aa' },
+    { id: '3', name: 'Freelance', color: '#a1a1aa' },
+    { id: '4', name: 'Rust', color: '#a1a1aa' },
+    { id: '5', name: 'Web', color: '#a1a1aa' },
+    { id: '6', name: 'Mobile', color: '#a1a1aa' },
   ];
 }
 
@@ -236,8 +236,8 @@ function getMockProjects(): Project[] {
       git_dirty: true,
       exists_on_disk: true,
       tags: [
-        { id: '1', name: 'Trabalho', color: '#3b82f6' },
-        { id: '4', name: 'Rust', color: '#ef4444' },
+        { id: '1', name: 'Trabalho', color: '#a1a1aa' },
+        { id: '4', name: 'Rust', color: '#a1a1aa' },
       ],
       scripts: [
         { id: 'sc-1', project_id: 'proj-1', name: 'Dev Server', command: 'npm run tauri dev' },

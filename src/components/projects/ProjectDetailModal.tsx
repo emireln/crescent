@@ -106,6 +106,8 @@ export const ProjectDetailModal: React.FC = () => {
     }
   }, [activeTab, activeProject.path, readmeContent]);
 
+  const [overviewSaved, setOverviewSaved] = useState(false);
+
   const handleSaveOverview = async () => {
     await updateProject({
       id: activeProject.id,
@@ -120,6 +122,8 @@ export const ProjectDetailModal: React.FC = () => {
       notes: notesContent,
       tag_ids: selectedTagIds,
     });
+    setOverviewSaved(true);
+    setTimeout(() => setOverviewSaved(false), 1500);
   };
 
   const handleSaveNotes = async () => {
@@ -513,8 +517,8 @@ export const ProjectDetailModal: React.FC = () => {
                     onClick={handleSaveOverview}
                     className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-xs font-semibold transition-colors shadow-sm"
                   >
-                    <IconDeviceFloppy size={15} />
-                    <span>Salvar Alterações</span>
+                    {overviewSaved ? <IconCheck size={15} /> : <IconDeviceFloppy size={15} />}
+                    <span>{overviewSaved ? 'Salvo!' : 'Salvar Alterações'}</span>
                   </button>
                 </div>
               </div>

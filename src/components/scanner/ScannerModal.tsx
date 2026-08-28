@@ -18,7 +18,7 @@ import { formatBytes, formatRelativeTime, getTechColor } from '../../utils/forma
 export const ScannerModal: React.FC = () => {
   const { isScannerOpen, setIsScannerOpen, batchImportProjects, settings } = useProjects();
 
-  const [rootPath, setRootPath] = useState('C:\\Users\\emir.neto\\Desktop');
+  const [rootPath, setRootPath] = useState('');
   const [maxDepth, setMaxDepth] = useState(4);
   const [isScanning, setIsScanning] = useState(false);
   const [results, setResults] = useState<DiscoveredProject[]>([]);
@@ -101,7 +101,7 @@ export const ScannerModal: React.FC = () => {
         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
             <IconScan size={18} className="text-zinc-100" />
-            <span>Varredura Automática de Projetos</span>
+            <span>Varredura Automática</span>
           </div>
           <button
             type="button"
@@ -123,16 +123,16 @@ export const ScannerModal: React.FC = () => {
                 type="text"
                 value={rootPath}
                 onChange={e => setRootPath(e.target.value)}
-                placeholder="C:\Projetos ou D:\Dev"
+                placeholder="Ex: C:\Projetos ou D:\Dev"
                 className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 font-mono focus:outline-none focus:border-zinc-600"
               />
               <button
                 type="button"
                 onClick={handleSelectRoot}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-xs border border-zinc-700 font-medium"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-xs border border-zinc-700 font-medium shrink-0"
               >
                 <IconFolder size={14} />
-                <span>Escolher</span>
+                <span>Escolher Pasta</span>
               </button>
             </div>
           </div>
@@ -148,7 +148,7 @@ export const ScannerModal: React.FC = () => {
             >
               <option value={2}>2 níveis</option>
               <option value={3}>3 níveis</option>
-              <option value={4}>4 níveis (padrão)</option>
+              <option value={4}>4 níveis</option>
               <option value={5}>5 níveis</option>
               <option value={6}>6 níveis</option>
             </select>
@@ -169,7 +169,7 @@ export const ScannerModal: React.FC = () => {
               ) : (
                 <>
                   <IconSparkles size={14} />
-                  <span>Iniciar Varredura</span>
+                  <span>Escanear</span>
                 </>
               )}
             </button>
@@ -182,7 +182,7 @@ export const ScannerModal: React.FC = () => {
             <div className="flex items-center justify-between text-xs text-zinc-400 pb-2 border-b border-zinc-800">
               <div className="flex items-center gap-3">
                 <span>
-                  Detectados: <strong className="text-zinc-100">{results.length}</strong> repositórios
+                  Encontrados: <strong className="text-zinc-100">{results.length}</strong>
                 </span>
                 <span>•</span>
                 <span className="text-zinc-200">
@@ -204,7 +204,7 @@ export const ScannerModal: React.FC = () => {
                   onClick={toggleSelectAll}
                   className="text-xs text-zinc-200 hover:text-white font-medium underline"
                 >
-                  {selectedPaths.size === newProjectsCount ? 'Desmarcar Todos' : 'Selecionar Todos Novos'}
+                  {selectedPaths.size === newProjectsCount ? 'Desmarcar Todos' : 'Selecionar Novos'}
                 </button>
               )}
             </div>
@@ -212,19 +212,19 @@ export const ScannerModal: React.FC = () => {
 
           {!hasScanned && !isScanning && (
             <div className="py-16 text-center text-zinc-500 text-xs flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400">
-                <IconScan size={24} />
+              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400">
+                <IconScan size={20} />
               </div>
-              <p className="max-w-md text-zinc-400">
-                Selecione o diretório onde você armazena seus códigos (ex: <code>C:\Users\emir.neto\Desktop</code> ou <code>D:\Dev</code>) e clique em <strong>Iniciar Varredura</strong> para detectar repositórios e tecnologias automaticamente.
+              <p className="max-w-sm text-zinc-400">
+                Selecione a pasta onde ficam seus projetos para detectar repositórios e tecnologias automaticamente.
               </p>
             </div>
           )}
 
           {isScanning && (
             <div className="py-16 text-center text-zinc-400 text-xs flex flex-col items-center gap-3">
-              <IconLoader2 size={28} className="animate-spin text-zinc-200" />
-              <span>Varrendo diretórios e analisando arquivos de manifesto (Cargo, package.json, go.mod, pyproject.toml)...</span>
+              <IconLoader2 size={24} className="animate-spin text-zinc-200" />
+              <span>Analisando diretórios e dependências...</span>
             </div>
           )}
 

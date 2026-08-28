@@ -181,13 +181,13 @@ pub fn init_db() -> Result<DbState, String> {
 
     if tag_count == 0 {
         let default_tags = [
-            ("Trabalho", "#3b82f6"),   // Blue
-            ("Estudo", "#10b981"),     // Green
-            ("Freelance", "#f59e0b"),  // Amber
-            ("Rust", "#ef4444"),       // Red
-            ("Web", "#8b5cf6"),        // Purple
-            ("Mobile", "#ec4899"),     // Pink
-            ("Open Source", "#06b6d4"),// Cyan
+            ("Trabalho", "#a1a1aa"),
+            ("Estudo", "#a1a1aa"),
+            ("Freelance", "#a1a1aa"),
+            ("Rust", "#a1a1aa"),
+            ("Web", "#a1a1aa"),
+            ("Mobile", "#a1a1aa"),
+            ("Open Source", "#a1a1aa"),
         ];
 
         for (name, color) in default_tags {
