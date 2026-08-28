@@ -14,7 +14,6 @@ import {
   IconScan,
   IconFolderPlus,
   IconTrash,
-  IconShieldLock,
   IconBriefcase,
   IconDatabase,
   IconCode,
@@ -540,16 +539,10 @@ export const Sidebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 text-xs cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 text-xs cursor-pointer"
           >
-            <div className="flex items-center gap-2.5">
-              <IconSettings size={18} />
-              <span>Configurações</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-              <IconShieldLock size={12} />
-              <span>Offline</span>
-            </div>
+            <IconSettings size={18} />
+            <span>Configurações</span>
           </button>
         )}
       </div>

@@ -514,15 +514,15 @@ export const ProjectDetailModal: React.FC = () => {
             <div className="h-full flex flex-col space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
                 <div className="text-xs text-zinc-400">
-                  Anotações locais em Markdown (salvas em SQLite offline).
+                  Anotações e documentação do projeto.
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded p-0.5">
+                  <div className="flex items-center bg-zinc-900 rounded-md p-0.5">
                     <button
                       type="button"
                       onClick={() => setNotesViewMode('edit')}
-                      className={`px-2 py-1 rounded text-xs ${
-                        notesViewMode === 'edit' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400'
+                      className={`px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+                        notesViewMode === 'edit' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       <IconEdit size={13} className="inline mr-1" /> Editar
@@ -530,8 +530,8 @@ export const ProjectDetailModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setNotesViewMode('preview')}
-                      className={`px-2 py-1 rounded text-xs ${
-                        notesViewMode === 'preview' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400'
+                      className={`px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+                        notesViewMode === 'preview' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       <IconEye size={13} className="inline mr-1" /> Visualizar
@@ -539,16 +539,16 @@ export const ProjectDetailModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setNotesViewMode('split')}
-                      className={`px-2 py-1 rounded text-xs ${
-                        notesViewMode === 'split' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400'
+                      className={`px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+                        notesViewMode === 'split' ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       Dividido
                     </button>
                   </div>
 
-                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded ${notesSaved ? 'text-zinc-500' : 'text-zinc-100 bg-zinc-800 border border-zinc-700'}`}>
-                    {notesSaved ? 'Salvo no banco' : 'Alterações não salvas'}
+                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded ${notesSaved ? 'text-zinc-500' : 'text-zinc-100 bg-zinc-800'}`}>
+                    {notesSaved ? 'Salvo' : 'Alterações não salvas'}
                   </span>
 
                   <button

@@ -91,7 +91,7 @@ export const AiChatModal: React.FC = () => {
           name: `${name} (Instalado)`,
           provider: 'ollama',
           context_window: '32k - 128k',
-          description: 'Modelo local instalado e pronto para execução 100% offline.',
+          description: 'Modelo local pronto para uso.',
         }));
 
         setAvailableModels(prev => {
@@ -339,7 +339,7 @@ export const AiChatModal: React.FC = () => {
           <div className="p-3 text-[11px] text-zinc-500 space-y-1">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
-              <span>Memória SQLite Ativa</span>
+              <span>Memória Ativa</span>
             </div>
             <div>Atalho rápido: <kbd className="font-mono text-zinc-400 bg-zinc-850 px-1 py-0.5 rounded">Ctrl + J</kbd></div>
           </div>

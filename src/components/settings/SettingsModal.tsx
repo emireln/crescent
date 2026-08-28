@@ -178,7 +178,7 @@ export const SettingsModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-200">
                   <ProviderIcon provider="ollama" size={14} />
-                  <span>Ollama (Local / Offline)</span>
+                  <span>Ollama (Local)</span>
                 </div>
                 <button
                   type="button"
@@ -434,12 +434,12 @@ export const SettingsModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Backup & Persistence */}
-          <div className="p-3.5 bg-zinc-900 rounded-lg space-y-3">
+          {/* Backup Section */}
+          <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
                 <IconDatabase size={16} className="text-zinc-400" />
-                <span>Persistência & Backup</span>
+                <span>Backup dos Dados</span>
               </div>
               <button
                 type="button"
@@ -450,18 +450,17 @@ export const SettingsModal: React.FC = () => {
                 <span>Exportar Backup JSON</span>
               </button>
             </div>
-            <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Todos os seus dados (projetos, tags, conversas de IA, portas, scripts e anotações) são armazenados localmente no banco SQLite em <code>%AppData%/Crescent/crescent.db</code> sem nuvem obrigatória.
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Exporte um arquivo com todos os seus projetos, tags e anotações para transferência ou backup.
             </p>
           </div>
 
           {/* App Info */}
-          <div className="p-3 bg-zinc-900 border border-zinc-800 rounded flex items-center justify-between text-xs text-zinc-400">
+          <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between text-xs text-zinc-400">
             <div className="flex items-center gap-2.5">
               <img src="/crescent-logo.png" alt="Crescent Logo" className="h-5 w-auto object-contain rounded shrink-0" />
-              <span className="text-zinc-200 font-medium">Crescent — Gerenciador Local de Projetos v0.1.3</span>
+              <span className="text-zinc-200 font-medium">Crescent — Gerenciador Local de Projetos</span>
             </div>
-            <span className="text-[11px] text-zinc-500 font-mono">100% Offline (PT-BR)</span>
           </div>
 
           {/* Footer Buttons */}
