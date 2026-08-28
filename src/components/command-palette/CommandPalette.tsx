@@ -7,6 +7,7 @@ import {
   IconCode,
   IconTerminal2,
   IconStar,
+  IconBrain,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { getTechColor } from '../../utils/formatters';
@@ -23,6 +24,7 @@ export const CommandPalette: React.FC = () => {
     setIsDiskCleanerOpen,
     setIsWorkspaceModalOpen,
     setIsCodeSearchOpen,
+    setIsAiChatOpen,
     openInEditor,
     openInTerminal,
   } = useProjects();
@@ -54,6 +56,16 @@ export const CommandPalette: React.FC = () => {
   }).slice(0, 8);
 
   const actions = [
+    {
+      id: 'act-ai-chat',
+      title: 'Crescent AI Assistant (Chat)',
+      subtitle: 'Conversar com Ollama, Gemini, OpenAI, DeepSeek ou Claude (Ctrl+J)',
+      icon: <IconBrain size={16} className="text-zinc-100" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsAiChatOpen(true);
+      },
+    },
     {
       id: 'act-new',
       title: 'Adicionar Novo Projeto',

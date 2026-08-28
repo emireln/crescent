@@ -55,6 +55,10 @@ interface ProjectContextType {
   setIsWorkspaceModalOpen: (open: boolean) => void;
   isCodeSearchOpen: boolean;
   setIsCodeSearchOpen: (open: boolean) => void;
+  isAiChatOpen: boolean;
+  setIsAiChatOpen: (open: boolean) => void;
+  aiActiveProjectId: string | null;
+  setAiActiveProjectId: (id: string | null) => void;
 
   // Port Sentinel
   portStatuses: Record<number, PortStatusInfo>;
@@ -147,6 +151,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isDiskCleanerOpen, setIsDiskCleanerOpen] = useState(false);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [isCodeSearchOpen, setIsCodeSearchOpen] = useState(false);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [aiActiveProjectId, setAiActiveProjectId] = useState<string | null>(null);
 
   const refreshProjects = useCallback(async () => {
     try {
@@ -236,6 +242,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsCodeSearchOpen(prev => !prev);
         return;
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setIsAiChatOpen(prev => !prev);
+        return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(prev => !prev);
@@ -249,7 +260,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsScannerOpen(true);
       }
       if (e.key === 'Escape') {
-        if (isCodeSearchOpen) setIsCodeSearchOpen(false);
+        if (isAiChatOpen) setIsAiChatOpen(false);
+        else if (isCodeSearchOpen) setIsCodeSearchOpen(false);
         else if (isDiskCleanerOpen) setIsDiskCleanerOpen(false);
         else if (isWorkspaceModalOpen) setIsWorkspaceModalOpen(false);
         else if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
@@ -262,7 +274,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCommandPaletteOpen, isScannerOpen, isNewProjectOpen, isSettingsOpen, isDiskCleanerOpen, isWorkspaceModalOpen, isCodeSearchOpen, activeProject]);
+  }, [isCommandPaletteOpen, isScannerOpen, isNewProjectOpen, isSettingsOpen, isDiskCleanerOpen, isWorkspaceModalOpen, isCodeSearchOpen, isAiChatOpen, activeProject]);
 
   // Derived filtered & sorted projects
   const filteredProjects = useMemo(() => {
@@ -540,6 +552,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsWorkspaceModalOpen,
         isCodeSearchOpen,
         setIsCodeSearchOpen,
+        isAiChatOpen,
+        setIsAiChatOpen,
+        aiActiveProjectId,
+        setAiActiveProjectId,
         portStatuses,
         refreshPortStatuses,
         killPort,

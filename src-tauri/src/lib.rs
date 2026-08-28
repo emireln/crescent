@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod ai;
 pub mod cleaner;
 pub mod code_search;
 pub mod db;
@@ -18,18 +19,21 @@ use actions::{
     execute_project_script, open_browser_url, open_editor, open_explorer, open_terminal,
     read_project_readme, ScriptExecutionResult,
 };
+use ai::{build_system_context, list_ollama_local_models, send_chat_to_provider};
 use cleaner::{
     analyze_project_cleanable, clean_selected_paths, CleanResult, ProjectCleanableInfo,
 };
 use code_search::{search_code_across_projects, CodeSearchResult, ProjectSearchTarget};
 use db::{
-    add_port_record, add_script_record, create_tag_record, delete_port_record,
-    delete_project_record, delete_script_record, delete_tag_record, delete_workspace_record,
-    export_all_data, fetch_all_projects, fetch_all_settings, fetch_all_tags, fetch_all_workspaces,
-    fetch_project_by_id, init_db, insert_project, insert_workspace, save_project_notes,
-    save_setting_record, toggle_project_favorite, toggle_project_pinned, update_project_path,
-    update_project_record, update_workspace_record, CreateProjectInput, DbState, Project,
-    ProjectPort, ProjectScript, Tag, UpdateProjectInput, Workspace,
+    add_port_record, add_script_record, create_tag_record, delete_ai_conversation_record,
+    delete_port_record, delete_project_record, delete_script_record, delete_tag_record,
+    delete_workspace_record, export_all_data, fetch_all_ai_conversations, fetch_all_projects,
+    fetch_all_settings, fetch_all_tags, fetch_all_workspaces, fetch_messages_for_conversation,
+    fetch_project_by_id, init_db, insert_ai_conversation, insert_ai_message_record, insert_project,
+    insert_workspace, save_project_notes, save_setting_record, toggle_project_favorite,
+    toggle_project_pinned, update_project_path, update_project_record, update_workspace_record,
+    AiConversation, AiMessage, CreateProjectInput, DbState, Project, ProjectPort, ProjectScript,
+    Tag, UpdateProjectInput, Workspace,
 };
 use env_manager::{create_env_from_example, inspect_env_files, EnvFileInfo};
 use git::{
@@ -198,6 +202,136 @@ fn update_workspace(
 fn delete_workspace(state: State<DbState>, id: String) -> Result<(), String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_workspace_record(&conn, &id)
+}
+
+// -------------------------------------------------------------
+// AI Assistant & Multi-LLM Gateway
+// -------------------------------------------------------------
+
+#[tauri::command]
+fn get_ai_conversations(
+    state: State<DbState>,
+    project_id: Option<String>,
+) -> Result<Vec<AiConversation>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    fetch_all_ai_conversations(&conn, project_id.as_deref())
+}
+
+#[tauri::command]
+fn get_ai_messages(
+    state: State<DbState>,
+    conversation_id: String,
+) -> Result<Vec<AiMessage>, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    fetch_messages_for_conversation(&conn, &conversation_id)
+}
+
+#[tauri::command]
+fn create_ai_conversation(
+    state: State<DbState>,
+    title: String,
+    project_id: Option<String>,
+    provider: String,
+    model: String,
+) -> Result<AiConversation, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    insert_ai_conversation(&conn, &title, project_id.as_deref(), &provider, &model)
+}
+
+#[tauri::command]
+fn delete_ai_conversation(state: State<DbState>, id: String) -> Result<(), String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    delete_ai_conversation_record(&conn, &id)
+}
+
+#[tauri::command]
+fn update_ai_conversation_model(
+    state: State<DbState>,
+    id: String,
+    provider: String,
+    model: String,
+) -> Result<(), String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    db::update_ai_conversation_model(&conn, &id, &provider, &model)
+}
+
+#[tauri::command]
+fn send_ai_chat_message(
+    state: State<DbState>,
+    conversation_id: String,
+    user_message: String,
+    provider: String,
+    model: String,
+    project_id: Option<String>,
+) -> Result<AiMessage, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+
+    // 1. Record user message
+    let _ = insert_ai_message_record(
+        &conn,
+        &conversation_id,
+        "user",
+        &user_message,
+        &provider,
+        &model,
+        0,
+        0,
+    )?;
+
+    // 2. Fetch projects context for RAG
+    let all_projects = fetch_all_projects(&conn).unwrap_or_default();
+    let active_project = if let Some(ref pid) = project_id {
+        fetch_project_by_id(&conn, pid).unwrap_or(None)
+    } else {
+        None
+    };
+
+    // 3. Fetch settings
+    let settings = fetch_all_settings(&conn).unwrap_or_default();
+    let high_density = settings
+        .get("ai_high_density_mode")
+        .map(|v| v != "false")
+        .unwrap_or(true);
+
+    // 4. Build high-density context
+    let system_context = build_system_context(&all_projects, active_project.as_ref(), high_density);
+
+    // 5. Fetch message history
+    let history = fetch_messages_for_conversation(&conn, &conversation_id).unwrap_or_default();
+    let history_slice = if history.len() > 1 {
+        &history[..history.len() - 1]
+    } else {
+        &[]
+    };
+
+    // 6. Query LLM
+    let response = send_chat_to_provider(
+        &provider,
+        &model,
+        &system_context,
+        history_slice,
+        &user_message,
+        &settings,
+    )?;
+
+    // 7. Record assistant message
+    let assistant_msg = insert_ai_message_record(
+        &conn,
+        &conversation_id,
+        "assistant",
+        &response.content,
+        &response.provider,
+        &response.model,
+        response.prompt_tokens,
+        response.completion_tokens,
+    )?;
+
+    Ok(assistant_msg)
+}
+
+#[tauri::command]
+fn get_ollama_models(ollama_url: Option<String>) -> Result<Vec<String>, String> {
+    list_ollama_local_models(&ollama_url.unwrap_or_default())
 }
 
 // -------------------------------------------------------------
@@ -423,6 +557,13 @@ pub fn run() {
             create_workspace,
             update_workspace,
             delete_workspace,
+            get_ai_conversations,
+            get_ai_messages,
+            create_ai_conversation,
+            delete_ai_conversation,
+            update_ai_conversation_model,
+            send_ai_chat_message,
+            get_ollama_models,
             check_port_status,
             check_ports_status,
             kill_port,

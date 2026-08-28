@@ -21,6 +21,7 @@ import { SettingsModal } from './components/settings/SettingsModal';
 import { DiskCleanerModal } from './components/cleaner/DiskCleanerModal';
 import { WorkspaceModal } from './components/workspaces/WorkspaceModal';
 import { CodeSearchModal } from './components/code-search/CodeSearchModal';
+import { AiChatModal } from './components/ai/AiChatModal';
 import { SortOption } from './types';
 
 const Dashboard: React.FC = () => {
@@ -205,6 +206,7 @@ const Dashboard: React.FC = () => {
       <DiskCleanerModal />
       <WorkspaceModal />
       <CodeSearchModal />
+      <AiChatModal />
     </div>
   );
 };

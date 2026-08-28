@@ -30,13 +30,15 @@ import {
   IconFileCode,
   IconAlertTriangle,
   IconSquareLetterX,
+  IconBrain,
+  IconSparkles,
 } from '@tabler/icons-react';
 import { ScriptExecutionResult, GitCommitSummary, EnvFileInfo } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
 
-type Tab = 'overview' | 'notes' | 'readme' | 'git' | 'env' | 'ports' | 'scripts';
+type Tab = 'overview' | 'notes' | 'readme' | 'git' | 'env' | 'ports' | 'scripts' | 'ai';
 
 export const ProjectDetailModal: React.FC = () => {
   const {
@@ -59,6 +61,8 @@ export const ProjectDetailModal: React.FC = () => {
     runScript,
     portStatuses,
     killPort,
+    setIsAiChatOpen,
+    setAiActiveProjectId,
   } = useProjects();
 
   if (!activeProject) return null;
@@ -340,6 +344,7 @@ export const ProjectDetailModal: React.FC = () => {
             { id: 'env', label: 'Variáveis .env', icon: <IconFileCode size={14} /> },
             { id: 'ports', label: `Portas (${activeProject.ports.length})`, icon: <IconWorld size={14} /> },
             { id: 'scripts', label: `Scripts (${activeProject.scripts.length})`, icon: <IconPlayerPlay size={14} /> },
+            { id: 'ai', label: 'IA Assistente', icon: <IconBrain size={14} /> },
           ].map(tab => (
             <button
               key={tab.id}
@@ -947,6 +952,67 @@ export const ProjectDetailModal: React.FC = () => {
                   </pre>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 8: IA ASSISTENTE */}
+          {activeTab === 'ai' && (
+            <div className="space-y-4">
+              <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-zinc-100">
+                    <IconBrain size={16} className="text-zinc-100" />
+                    <span>Crescent AI Contextualizado: {activeProject.name}</span>
+                  </div>
+                  <p className="text-xs text-zinc-400">
+                    O assistente tem acesso direto aos manifestos, notas, portas e README deste repositório via RAG local.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAiActiveProjectId(activeProject.id);
+                    setIsAiChatOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-xs font-semibold shadow-sm transition-colors"
+                >
+                  <IconSparkles size={14} />
+                  <span>Abrir Chat com IA</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  {
+                    title: 'Auditar Segurança & Dependências',
+                    desc: 'Analisa o manifesto do projeto para encontrar versões desatualizadas ou problemas.',
+                  },
+                  {
+                    title: 'Gerar Scripts de Deploy / CI/CD',
+                    desc: 'Cria workflows de GitHub Actions ou Dockerfile adaptados à stack do projeto.',
+                  },
+                  {
+                    title: 'Explicar Arquitetura & Fluxo',
+                    desc: 'Resume a estrutura do projeto e pontos de entrada do código.',
+                  },
+                  {
+                    title: 'Otimizar Performance & Build',
+                    desc: 'Sugere flags de compilação, linkers rápidos e técnicas de bundle splitting.',
+                  },
+                ].map(card => (
+                  <div
+                    key={card.title}
+                    onClick={() => {
+                      setAiActiveProjectId(activeProject.id);
+                      setIsAiChatOpen(true);
+                    }}
+                    className="p-3.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 rounded-lg cursor-pointer transition-colors space-y-1"
+                  >
+                    <div className="text-xs font-semibold text-zinc-200">{card.title} →</div>
+                    <div className="text-[11px] text-zinc-400">{card.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

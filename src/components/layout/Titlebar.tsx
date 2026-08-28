@@ -10,6 +10,7 @@ import {
   IconWorld,
   IconCoffee,
   IconBrandGithub,
+  IconBrain,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
@@ -20,6 +21,7 @@ export const Titlebar: React.FC = () => {
     setIsCommandPaletteOpen,
     setIsNewProjectOpen,
     setIsScannerOpen,
+    setIsAiChatOpen,
   } = useProjects();
 
   const [isMaximized, setIsMaximized] = useState(false);
@@ -119,6 +121,16 @@ export const Titlebar: React.FC = () => {
         >
           <IconScan size={14} className="text-zinc-400" />
           <span className="hidden sm:inline">Escanear</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsAiChatOpen(true)}
+          title="Crescent AI Assistant (Ctrl + J)"
+          className="flex items-center gap-1 px-2.5 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-200 hover:text-white transition-colors"
+        >
+          <IconBrain size={14} className="text-zinc-300" />
+          <span className="hidden sm:inline font-semibold">IA</span>
         </button>
       </div>
 

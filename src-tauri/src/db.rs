@@ -41,6 +41,30 @@ pub struct Workspace {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiConversation {
+    pub id: String,
+    pub title: String,
+    pub project_id: Option<String>,
+    pub provider: String,
+    pub model: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiMessage {
+    pub id: String,
+    pub conversation_id: String,
+    pub role: String,
+    pub content: String,
+    pub provider: String,
+    pub model: String,
+    pub prompt_tokens: u32,
+    pub completion_tokens: u32,
+    pub created_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
     pub id: String,
     pub name: String,
@@ -193,6 +217,30 @@ pub fn init_db() -> Result<DbState, String> {
             PRIMARY KEY (workspace_id, project_id),
             FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
             FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS ai_conversations (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            project_id TEXT,
+            provider TEXT NOT NULL,
+            model TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS ai_messages (
+            id TEXT PRIMARY KEY,
+            conversation_id TEXT NOT NULL,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            model TEXT NOT NULL,
+            prompt_tokens INTEGER NOT NULL DEFAULT 0,
+            completion_tokens INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY (conversation_id) REFERENCES ai_conversations(id) ON DELETE CASCADE
         );
         "#,
     )
@@ -1023,4 +1071,157 @@ pub fn delete_workspace_record(conn: &Connection, id: &str) -> Result<(), String
         .map_err(|e| format!("Falha ao excluir workspace: {}", e))?;
     Ok(())
 }
+
+// -------------------------------------------------------------
+// AI Conversations & Messages
+// -------------------------------------------------------------
+
+pub fn fetch_all_ai_conversations(
+    conn: &Connection,
+    project_id: Option<&str>,
+) -> Result<Vec<AiConversation>, String> {
+    let mut sql = "SELECT id, title, project_id, provider, model, created_at, updated_at FROM ai_conversations".to_string();
+    if project_id.is_some() {
+        sql.push_str(" WHERE project_id = ?1");
+    }
+    sql.push_str(" ORDER BY updated_at DESC");
+
+    let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+
+    let map_row = |row: &rusqlite::Row| {
+        Ok(AiConversation {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            project_id: row.get(2)?,
+            provider: row.get(3)?,
+            model: row.get(4)?,
+            created_at: row.get(5)?,
+            updated_at: row.get(6)?,
+        })
+    };
+
+    let convs = if let Some(pid) = project_id {
+        let rows = stmt.query_map(params![pid], map_row).map_err(|e| e.to_string())?;
+        rows.filter_map(Result::ok).collect()
+    } else {
+        let rows = stmt.query_map([], map_row).map_err(|e| e.to_string())?;
+        rows.filter_map(Result::ok).collect()
+    };
+
+    Ok(convs)
+}
+
+pub fn fetch_messages_for_conversation(
+    conn: &Connection,
+    conversation_id: &str,
+) -> Result<Vec<AiMessage>, String> {
+    let mut stmt = conn
+        .prepare("SELECT id, conversation_id, role, content, provider, model, prompt_tokens, completion_tokens, created_at FROM ai_messages WHERE conversation_id = ?1 ORDER BY created_at ASC")
+        .map_err(|e| e.to_string())?;
+
+    let rows = stmt
+        .query_map(params![conversation_id], |row| {
+            Ok(AiMessage {
+                id: row.get(0)?,
+                conversation_id: row.get(1)?,
+                role: row.get(2)?,
+                content: row.get(3)?,
+                provider: row.get(4)?,
+                model: row.get(5)?,
+                prompt_tokens: row.get(6)?,
+                completion_tokens: row.get(7)?,
+                created_at: row.get(8)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    Ok(rows.filter_map(Result::ok).collect())
+}
+
+pub fn insert_ai_conversation(
+    conn: &Connection,
+    title: &str,
+    project_id: Option<&str>,
+    provider: &str,
+    model: &str,
+) -> Result<AiConversation, String> {
+    let id = Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().timestamp();
+
+    conn.execute(
+        "INSERT INTO ai_conversations (id, title, project_id, provider, model, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![id, title, project_id, provider, model, now, now],
+    )
+    .map_err(|e| format!("Falha ao criar conversa de IA: {}", e))?;
+
+    Ok(AiConversation {
+        id,
+        title: title.to_string(),
+        project_id: project_id.map(|s| s.to_string()),
+        provider: provider.to_string(),
+        model: model.to_string(),
+        created_at: now,
+        updated_at: now,
+    })
+}
+
+pub fn delete_ai_conversation_record(conn: &Connection, id: &str) -> Result<(), String> {
+    conn.execute("DELETE FROM ai_conversations WHERE id = ?1", params![id])
+        .map_err(|e| format!("Falha ao excluir conversa de IA: {}", e))?;
+    Ok(())
+}
+
+pub fn insert_ai_message_record(
+    conn: &Connection,
+    conversation_id: &str,
+    role: &str,
+    content: &str,
+    provider: &str,
+    model: &str,
+    prompt_tokens: u32,
+    completion_tokens: u32,
+) -> Result<AiMessage, String> {
+    let id = Uuid::new_v4().to_string();
+    let now = chrono::Utc::now().timestamp();
+
+    conn.execute(
+        "INSERT INTO ai_messages (id, conversation_id, role, content, provider, model, prompt_tokens, completion_tokens, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![id, conversation_id, role, content, provider, model, prompt_tokens, completion_tokens, now],
+    )
+    .map_err(|e| format!("Falha ao gravar mensagem de IA: {}", e))?;
+
+    // Update conversation updated_at and provider/model
+    let _ = conn.execute(
+        "UPDATE ai_conversations SET updated_at = ?1, provider = ?2, model = ?3 WHERE id = ?4",
+        params![now, provider, model, conversation_id],
+    );
+
+    Ok(AiMessage {
+        id,
+        conversation_id: conversation_id.to_string(),
+        role: role.to_string(),
+        content: content.to_string(),
+        provider: provider.to_string(),
+        model: model.to_string(),
+        prompt_tokens,
+        completion_tokens,
+        created_at: now,
+    })
+}
+
+pub fn update_ai_conversation_model(
+    conn: &Connection,
+    id: &str,
+    provider: &str,
+    model: &str,
+) -> Result<(), String> {
+    let now = chrono::Utc::now().timestamp();
+    conn.execute(
+        "UPDATE ai_conversations SET provider = ?1, model = ?2, updated_at = ?3 WHERE id = ?4",
+        params![provider, model, now, id],
+    )
+    .map_err(|e| format!("Falha ao atualizar modelo da conversa: {}", e))?;
+    Ok(())
+}
+
 

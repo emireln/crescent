@@ -18,6 +18,7 @@ import {
   IconBriefcase,
   IconDatabase,
   IconCode,
+  IconBrain,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
@@ -41,6 +42,7 @@ export const Sidebar: React.FC = () => {
     setIsDiskCleanerOpen,
     setIsWorkspaceModalOpen,
     setIsCodeSearchOpen,
+    setIsAiChatOpen,
   } = useProjects();
 
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -286,6 +288,18 @@ export const Sidebar: React.FC = () => {
                 </span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => setIsAiChatOpen(true)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs text-zinc-300 hover:text-zinc-100 hover:bg-zinc-900 transition-colors border border-transparent font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <IconBrain size={16} className="text-zinc-200" />
+                <span>Crescent AI (Chat)</span>
+              </div>
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-850 px-1 py-0.2 rounded border border-zinc-800">Ctrl+J</kbd>
+            </button>
 
             <button
               type="button"

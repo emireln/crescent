@@ -22,6 +22,9 @@ import {
   ProjectSearchTarget,
   ProjectTemplate,
   EnvFileInfo,
+  AiConversation,
+  AiMessage,
+  AiProvider,
 } from '../types';
 
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -334,7 +337,122 @@ export const api = {
     if (isTauri) return await invoke('export_database');
     return JSON.stringify({ version: '1.0.0', mock: true });
   },
+
+  // -------------------------------------------------------------
+  // AI Assistant & Multi-LLM Gateway
+  // -------------------------------------------------------------
+  getAiConversations: async (projectId?: string | null): Promise<AiConversation[]> => {
+    if (isTauri) return await invoke('get_ai_conversations', { projectId: projectId || null });
+    return getMockAiConversations(projectId);
+  },
+
+  getAiMessages: async (conversationId: string): Promise<AiMessage[]> => {
+    if (isTauri) return await invoke('get_ai_messages', { conversationId });
+    return getMockAiMessages(conversationId);
+  },
+
+  createAiConversation: async (
+    title: string,
+    projectId: string | null | undefined,
+    provider: AiProvider,
+    model: string,
+  ): Promise<AiConversation> => {
+    if (isTauri) return await invoke('create_ai_conversation', { title, projectId: projectId || null, provider, model });
+    return {
+      id: Math.random().toString(36).substring(2, 9),
+      title,
+      project_id: projectId || null,
+      provider,
+      model,
+      created_at: Date.now() / 1000,
+      updated_at: Date.now() / 1000,
+    };
+  },
+
+  deleteAiConversation: async (id: string): Promise<void> => {
+    if (isTauri) return await invoke('delete_ai_conversation', { id });
+  },
+
+  updateAiConversationModel: async (id: string, provider: AiProvider, model: string): Promise<void> => {
+    if (isTauri) return await invoke('update_ai_conversation_model', { id, provider, model });
+  },
+
+  sendAiChatMessage: async (
+    conversationId: string,
+    userMessage: string,
+    provider: AiProvider,
+    model: string,
+    projectId?: string | null,
+  ): Promise<AiMessage> => {
+    if (isTauri) {
+      return await invoke('send_ai_chat_message', {
+        conversationId,
+        userMessage,
+        provider,
+        model,
+        projectId: projectId || null,
+      });
+    }
+    // Web Fallback Mock response
+    return {
+      id: Math.random().toString(36).substring(2, 9),
+      conversation_id: conversationId,
+      role: 'assistant',
+      content: `[Mock Crescent AI via ${provider.toUpperCase()} (${model})]\n\nRecebi sua mensagem sobre o ecossistema local:\n\n> "${userMessage}"\n\nTodos os ${projectId ? 'metadados do projeto selecionado' : 'repositórios do Crescent'} estão indexados com compressão de alta densidade no banco SQLite.`,
+      provider,
+      model,
+      prompt_tokens: 120,
+      completion_tokens: 48,
+      created_at: Date.now() / 1000,
+    };
+  },
+
+  getOllamaModels: async (ollamaUrl?: string): Promise<string[]> => {
+    if (isTauri) return await invoke('get_ollama_models', { ollamaUrl: ollamaUrl || null });
+    return ['llama3.3:70b', 'qwen2.5-coder:latest', 'deepseek-r1:latest', 'mistral:latest'];
+  },
 };
+
+function getMockAiConversations(projectId?: string | null): AiConversation[] {
+  return [
+    {
+      id: 'conv-1',
+      title: 'Arquitetura e Otimização',
+      project_id: projectId || null,
+      provider: 'ollama',
+      model: 'qwen2.5-coder:latest',
+      created_at: Date.now() / 1000 - 3600,
+      updated_at: Date.now() / 1000 - 600,
+    },
+  ];
+}
+
+function getMockAiMessages(convId: string): AiMessage[] {
+  return [
+    {
+      id: 'msg-1',
+      conversation_id: convId,
+      role: 'user',
+      content: 'Como posso melhorar a performance de build dos meus projetos Rust e React no Crescent?',
+      provider: 'ollama',
+      model: 'qwen2.5-coder:latest',
+      prompt_tokens: 45,
+      completion_tokens: 0,
+      created_at: Date.now() / 1000 - 600,
+    },
+    {
+      id: 'msg-2',
+      conversation_id: convId,
+      role: 'assistant',
+      content: '1. Utilize o linker rápido `mold` ou `lld` no Cargo (`.cargo/config.toml`).\n2. Ative cache sccache para builds Rust repetidos.\n3. Utilize o Limpador de Disco do Crescent periodicamente para purgar `target/` e `node_modules` órfãos.',
+      provider: 'ollama',
+      model: 'qwen2.5-coder:latest',
+      prompt_tokens: 180,
+      completion_tokens: 72,
+      created_at: Date.now() / 1000 - 580,
+    },
+  ];
+}
 
 // Fallback mock data for web previews
 function getMockTags(): Tag[] {
