@@ -245,7 +245,7 @@ export const AiChatModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 select-none animate-in fade-in duration-150"
+      className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center bg-black/75 p-4 select-none animate-in fade-in duration-150"
       onClick={() => setIsAiChatOpen(false)}
     >
       <div
@@ -554,7 +554,7 @@ export const AiChatModal: React.FC = () => {
                 type="button"
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || sending}
-                className="p-2 bg-zinc-100 hover:bg-white disabled:opacity-40 text-zinc-950 rounded-md transition-colors shrink-0 font-semibold"
+                className="p-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded-md transition-colors shrink-0 font-medium cursor-pointer"
                 title="Enviar Mensagem"
               >
                 <IconSend size={15} />

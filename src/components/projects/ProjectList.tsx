@@ -160,7 +160,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects }) => {
                           const p = await api.pickDirectory();
                           if (p) relocateProject(project.id, p);
                         }}
-                        className="px-2 py-1 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-[11px] font-semibold"
+                        className="px-2 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium transition-colors cursor-pointer"
                       >
                         Localizar
                       </button>
@@ -169,23 +169,23 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects }) => {
                         <button
                           type="button"
                           onClick={() => openInEditor(project)}
-                          className="p-1 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 text-zinc-300 rounded border border-zinc-700 transition-colors"
-                          title={`Abrir no editor (${settings.default_editor})`}
+                          className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors cursor-pointer"
+                          title={`Abrir no ${settings.default_editor}`}
                         >
                           <EditorIcon editor={settings.default_editor} size={13} />
                         </button>
                         <button
                           type="button"
                           onClick={() => openInTerminal(project)}
-                          className="p-1 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 text-zinc-300 rounded border border-zinc-700 transition-colors"
-                          title={`Abrir no terminal (${settings.default_terminal})`}
+                          className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors cursor-pointer"
+                          title="Abrir no Terminal"
                         >
                           <IconTerminal2 size={13} />
                         </button>
                         <button
                           type="button"
                           onClick={() => openInExplorer(project)}
-                          className="p-1 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 text-zinc-300 rounded border border-zinc-700 transition-colors"
+                          className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors cursor-pointer"
                           title="Explorador de Arquivos"
                         >
                           <IconFolder size={13} />

@@ -109,7 +109,7 @@ export const DiskCleanerModal: React.FC = () => {
   if (!isDiskCleanerOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 select-none animate-in fade-in duration-150">
+    <div className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center p-4 bg-black/75 select-none animate-in fade-in duration-150">
       <div className="w-full max-w-3xl max-h-[85vh] bg-zinc-950 border border-zinc-800 rounded-lg shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50">
@@ -156,7 +156,7 @@ export const DiskCleanerModal: React.FC = () => {
             type="button"
             onClick={handleCleanSelected}
             disabled={selectedPaths.size === 0 || cleaning || loading}
-            className="flex items-center gap-2 px-4 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 font-semibold rounded text-xs transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded text-xs transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {cleaning ? (
               <IconRefresh size={14} className="animate-spin" />

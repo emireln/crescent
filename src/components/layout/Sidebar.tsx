@@ -24,6 +24,7 @@ import {
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
+import { Tooltip } from '../common/Tooltip';
 
 export const Sidebar: React.FC = () => {
   const {
@@ -80,19 +81,19 @@ export const Sidebar: React.FC = () => {
   };
 
   const categories: { id: FilterCategory; label: string; icon: React.ReactNode; count: number }[] = [
-    { id: 'all', label: 'Todos os Projetos', icon: <IconFolders size={15} />, count: stats.total },
-    { id: 'favorites', label: 'Favoritos & Fixados', icon: <IconStar size={15} />, count: stats.favorites },
-    { id: 'active', label: 'Ativos', icon: <IconPlayerPlay size={15} />, count: stats.active },
-    { id: 'on_hold', label: 'Em Espera', icon: <IconPlayerPause size={15} />, count: stats.onHold },
-    { id: 'completed', label: 'Concluídos', icon: <IconCircleCheck size={15} />, count: stats.completed },
-    { id: 'archived', label: 'Arquivados', icon: <IconArchive size={15} />, count: stats.archived },
-    { id: 'dirty', label: 'Git Pendente', icon: <IconGitPullRequest size={15} />, count: stats.dirty },
+    { id: 'all', label: 'Todos os Projetos', icon: <IconFolders size={16} />, count: stats.total },
+    { id: 'favorites', label: 'Favoritos & Fixados', icon: <IconStar size={16} />, count: stats.favorites },
+    { id: 'active', label: 'Ativos', icon: <IconPlayerPlay size={16} />, count: stats.active },
+    { id: 'on_hold', label: 'Em Espera', icon: <IconPlayerPause size={16} />, count: stats.onHold },
+    { id: 'completed', label: 'Concluídos', icon: <IconCircleCheck size={16} />, count: stats.completed },
+    { id: 'archived', label: 'Arquivados', icon: <IconArchive size={16} />, count: stats.archived },
+    { id: 'dirty', label: 'Git Pendente', icon: <IconGitPullRequest size={16} />, count: stats.dirty },
   ];
 
   return (
     <aside
-      className={`h-[calc(100vh-2.5rem)] bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between select-none shrink-0 transition-all duration-150 ${
-        isCollapsed ? 'w-14' : 'w-56'
+      className={`h-[calc(100vh-2.75rem)] bg-zinc-950 border-r border-zinc-850 flex flex-col justify-between select-none shrink-0 transition-all duration-150 ${
+        isCollapsed ? 'w-14' : 'w-60'
       }`}
     >
       {/* Top Header & Actions */}
@@ -102,35 +103,36 @@ export const Sidebar: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsNewProjectOpen(true)}
-              className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium shadow-sm transition-colors"
-              title="Adicionar Novo Projeto (Ctrl + N)"
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
             >
-              <IconFolderPlus size={14} />
+              <IconFolderPlus size={15} />
               <span>Novo Projeto</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setIsScannerOpen(true)}
-              className="p-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-100 border border-zinc-800 rounded-md transition-colors"
-              title="Escanear Pastas (Ctrl + F)"
-            >
-              <IconScan size={14} />
-            </button>
+            <Tooltip content="Escanear Pastas" shortcut="Ctrl F" position="bottom">
+              <button
+                type="button"
+                onClick={() => setIsScannerOpen(true)}
+                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 border border-zinc-800 hover:border-zinc-700 rounded-md transition-colors cursor-pointer"
+              >
+                <IconScan size={15} />
+              </button>
+            </Tooltip>
           </div>
         )}
 
         {/* Toggle Collapse Button */}
-        <button
-          type="button"
-          onClick={() => setIsCollapsed(prev => !prev)}
-          className={`p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-md transition-colors ${
-            isCollapsed ? 'mx-auto' : ''
-          }`}
-          title={isCollapsed ? 'Expandir barra lateral' : 'Recolher barra lateral'}
-        >
-          {isCollapsed ? <IconChevronRight size={15} /> : <IconChevronLeft size={15} />}
-        </button>
+        <Tooltip content={isCollapsed ? 'Expandir barra lateral' : 'Recolher barra lateral'} position="right">
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(prev => !prev)}
+            className={`p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-md transition-colors cursor-pointer ${
+              isCollapsed ? 'mx-auto' : ''
+            }`}
+          >
+            {isCollapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
+          </button>
+        </Tooltip>
       </div>
 
       {/* Main Navigation Area */}
@@ -138,32 +140,30 @@ export const Sidebar: React.FC = () => {
         {/* Categories Section */}
         <div className="space-y-0.5">
           {!isCollapsed && (
-            <div className="px-2 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
+            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
               Visualizações
             </div>
           )}
 
           {categories.map(cat => {
             const isSelected = selectedCategory === cat.id && selectedTagId === null && selectedWorkspaceId === null;
-            return (
+            const btn = (
               <button
-                key={cat.id}
                 type="button"
                 onClick={() => {
                   setSelectedCategory(cat.id);
                   setSelectedTagId(null);
                   setSelectedWorkspaceId(null);
                 }}
-                className={`w-full flex items-center justify-between rounded-md text-xs transition-colors ${
-                  isCollapsed ? 'p-2 justify-center' : 'px-2 py-1.5'
+                className={`w-full flex items-center justify-between rounded-md text-xs transition-colors cursor-pointer ${
+                  isCollapsed ? 'p-2 justify-center' : 'px-2.5 py-1.5'
                 } ${
                   isSelected
                     ? 'bg-zinc-850 text-zinc-100 font-medium'
                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                 }`}
-                title={isCollapsed ? `${cat.label} (${cat.count})` : cat.label}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <span className={isSelected ? 'text-zinc-100' : 'text-zinc-400'}>{cat.icon}</span>
                   {!isCollapsed && <span className="truncate">{cat.label}</span>}
                 </div>
@@ -175,104 +175,155 @@ export const Sidebar: React.FC = () => {
                 )}
               </button>
             );
+
+            return isCollapsed ? (
+              <Tooltip key={cat.id} content={`${cat.label} (${cat.count})`} position="right" className="w-full">
+                {btn}
+              </Tooltip>
+            ) : (
+              <React.Fragment key={cat.id}>{btn}</React.Fragment>
+            );
           })}
 
           {/* Missing folders filter */}
           {stats.missing > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCategory('missing');
-                setSelectedTagId(null);
-                setSelectedWorkspaceId(null);
-              }}
-              className={`w-full flex items-center justify-between rounded-md text-xs transition-colors ${
-                isCollapsed ? 'p-2 justify-center' : 'px-2 py-1.5'
-              } ${
-                selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
-                  ? 'bg-zinc-850 text-zinc-100 font-medium'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
-              }`}
-              title={isCollapsed ? `Pastas Ausentes (${stats.missing})` : 'Pastas Ausentes no disco'}
-            >
-              <div className="flex items-center gap-2">
-                <IconAlertTriangle size={15} className="text-zinc-400" />
-                {!isCollapsed && <span>Pastas Ausentes</span>}
-              </div>
-              {!isCollapsed && (
+            isCollapsed ? (
+              <Tooltip content={`Pastas Ausentes (${stats.missing})`} position="right" className="w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory('missing');
+                    setSelectedTagId(null);
+                    setSelectedWorkspaceId(null);
+                  }}
+                  className={`w-full flex items-center justify-center p-2 rounded-md text-xs transition-colors ${
+                    selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
+                      ? 'bg-zinc-850 text-zinc-100 font-medium'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                  }`}
+                >
+                  <IconAlertTriangle size={16} className="text-zinc-400" />
+                </button>
+              </Tooltip>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory('missing');
+                  setSelectedTagId(null);
+                  setSelectedWorkspaceId(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+                  selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
+                    ? 'bg-zinc-850 text-zinc-100 font-medium'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <IconAlertTriangle size={16} className="text-zinc-400" />
+                  <span>Pastas Ausentes</span>
+                </div>
                 <span className="text-[11px] font-mono text-zinc-300">
                   {stats.missing}
                 </span>
-              )}
-            </button>
+              </button>
+            )
           )}
         </div>
 
         {/* Supertools Section */}
         <div className="space-y-0.5 pt-1">
           {!isCollapsed && (
-            <div className="px-2 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
+            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
               Ferramentas
             </div>
           )}
 
           {/* Crescent AI Button */}
-          <button
-            type="button"
-            onClick={() => setIsAiChatOpen(true)}
-            className={`w-full flex items-center justify-between rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors ${
-              isCollapsed ? 'p-2 justify-center' : 'px-2 py-1.5'
-            }`}
-            title="Crescent AI Assistant (Ctrl + J)"
-          >
-            <div className="flex items-center gap-2">
-              <IconBrain size={15} className="text-zinc-200" />
-              {!isCollapsed && <span>Crescent AI</span>}
-            </div>
-            {!isCollapsed && (
-              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1 py-0.2 rounded border border-zinc-800">
+          {isCollapsed ? (
+            <Tooltip content="Crescent AI Assistant" shortcut="Ctrl J" position="right" className="w-full">
+              <button
+                type="button"
+                onClick={() => setIsAiChatOpen(true)}
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors"
+              >
+                <IconBrain size={16} className="text-zinc-200" />
+              </button>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsAiChatOpen(true)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <IconBrain size={16} className="text-zinc-200" />
+                <span>Crescent AI</span>
+              </div>
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.2 rounded border border-zinc-800">
                 Ctrl J
               </kbd>
-            )}
-          </button>
+            </button>
+          )}
 
           {/* Global Code Grep */}
-          <button
-            type="button"
-            onClick={() => setIsCodeSearchOpen(true)}
-            className={`w-full flex items-center justify-between rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors ${
-              isCollapsed ? 'p-2 justify-center' : 'px-2 py-1.5'
-            }`}
-            title="Buscar Código nos Repositórios (Ctrl + Shift + F)"
-          >
-            <div className="flex items-center gap-2">
-              <IconCode size={15} className="text-zinc-400" />
-              {!isCollapsed && <span>Busca de Código</span>}
-            </div>
-          </button>
+          {isCollapsed ? (
+            <Tooltip content="Buscar Código nos Repositórios" shortcut="Ctrl+Shift+F" position="right" className="w-full">
+              <button
+                type="button"
+                onClick={() => setIsCodeSearchOpen(true)}
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+              >
+                <IconCode size={16} className="text-zinc-400" />
+              </button>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsCodeSearchOpen(true)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <IconCode size={16} className="text-zinc-400" />
+                <span>Busca de Código</span>
+              </div>
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1 py-0.2 rounded border border-zinc-800">
+                Ctrl+Shift+F
+              </kbd>
+            </button>
+          )}
 
           {/* Disk Cleaner */}
-          <button
-            type="button"
-            onClick={() => setIsDiskCleanerOpen(true)}
-            className={`w-full flex items-center justify-between rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors ${
-              isCollapsed ? 'p-2 justify-center' : 'px-2 py-1.5'
-            }`}
-            title="Limpador de Disco & Dependências"
-          >
-            <div className="flex items-center gap-2">
-              <IconDatabase size={15} className="text-zinc-400" />
-              {!isCollapsed && <span>Limpador de Disco</span>}
-            </div>
-          </button>
+          {isCollapsed ? (
+            <Tooltip content="Limpador de Disco & Dependências" position="right" className="w-full">
+              <button
+                type="button"
+                onClick={() => setIsDiskCleanerOpen(true)}
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+              >
+                <IconDatabase size={16} className="text-zinc-400" />
+              </button>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsDiskCleanerOpen(true)}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <IconDatabase size={16} className="text-zinc-400" />
+                <span>Limpador de Disco</span>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* Workspaces Section */}
         {!isCollapsed && (
           <div className="pt-1">
-            <div className="flex items-center justify-between px-2 pb-1">
+            <div className="flex items-center justify-between px-2.5 pb-1">
               <div className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase flex items-center gap-1.5">
-                <IconBriefcase size={12} />
+                <IconBriefcase size={13} />
                 <span>Workspaces</span>
               </div>
               <button
@@ -281,13 +332,13 @@ export const Sidebar: React.FC = () => {
                 className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
                 title="Gerenciar Workspaces"
               >
-                <IconPlus size={13} />
+                <IconPlus size={14} />
               </button>
             </div>
 
             <div className="space-y-0.5">
               {workspaces.length === 0 ? (
-                <div className="px-2 py-1 text-[11px] text-zinc-400">
+                <div className="px-2.5 py-1 text-[11px] text-zinc-400">
                   Nenhum workspace.
                 </div>
               ) : (
@@ -304,7 +355,7 @@ export const Sidebar: React.FC = () => {
                           setSelectedTagId(null);
                         }
                       }}
-                      className={`flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-zinc-850 text-zinc-100 font-medium'
                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
@@ -312,7 +363,7 @@ export const Sidebar: React.FC = () => {
                       title={`Workspace: ${ws.name}`}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <IconBriefcase size={13} className="text-zinc-400 shrink-0" />
+                        <IconBriefcase size={14} className="text-zinc-400 shrink-0" />
                         <span className="truncate">{ws.name}</span>
                       </div>
                       <span className="text-[10px] font-mono text-zinc-400">
@@ -329,9 +380,9 @@ export const Sidebar: React.FC = () => {
         {/* Tags Section */}
         {!isCollapsed && (
           <div className="pt-1">
-            <div className="flex items-center justify-between px-2 pb-1">
+            <div className="flex items-center justify-between px-2.5 pb-1">
               <div className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase flex items-center gap-1.5">
-                <IconTag size={12} />
+                <IconTag size={13} />
                 <span>Tags</span>
               </div>
               <button
@@ -340,7 +391,7 @@ export const Sidebar: React.FC = () => {
                 className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
                 title="Criar Tag"
               >
-                <IconPlus size={13} />
+                <IconPlus size={14} />
               </button>
             </div>
 
@@ -352,7 +403,7 @@ export const Sidebar: React.FC = () => {
                   onChange={e => setNewTagName(e.target.value)}
                   placeholder="Nome da tag..."
                   autoFocus
-                  className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-zinc-600"
+                  className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-zinc-700"
                 />
                 <div className="flex items-center justify-end gap-1">
                   <button
@@ -364,7 +415,7 @@ export const Sidebar: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-2 py-0.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-[11px] font-medium"
+                    className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium"
                   >
                     Salvar
                   </button>
@@ -374,7 +425,7 @@ export const Sidebar: React.FC = () => {
 
             <div className="space-y-0.5">
               {tags.length === 0 ? (
-                <div className="px-2 py-1 text-[11px] text-zinc-400">
+                <div className="px-2.5 py-1 text-[11px] text-zinc-400">
                   Nenhuma tag.
                 </div>
               ) : (
@@ -383,7 +434,7 @@ export const Sidebar: React.FC = () => {
                   return (
                     <div
                       key={tag.id}
-                      className={`group flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors ${
+                      className={`group flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors ${
                         isSelected
                           ? 'bg-zinc-850 text-zinc-100 font-medium'
                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
@@ -436,14 +487,27 @@ export const Sidebar: React.FC = () => {
           </div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => setIsSettingsOpen(true)}
-          className="flex items-center gap-1 p-1.5 hover:bg-zinc-900 hover:text-zinc-200 rounded-md transition-colors text-zinc-400"
-          title="Configurações (Editor, Terminal, IA, Backup)"
-        >
-          <IconSettings size={16} />
-        </button>
+        {isCollapsed ? (
+          <Tooltip content="Configurações" position="right" className="w-full">
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-full flex items-center justify-center p-2 hover:bg-zinc-900 hover:text-zinc-200 rounded-md transition-colors text-zinc-400 cursor-pointer"
+            >
+              <IconSettings size={16} />
+            </button>
+          </Tooltip>
+        ) : (
+          <Tooltip content="Configurações (Editor, Terminal, IA, Backup)" position="top">
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-1 p-1.5 hover:bg-zinc-900 hover:text-zinc-200 rounded-md transition-colors text-zinc-400 cursor-pointer"
+            >
+              <IconSettings size={16} />
+            </button>
+          </Tooltip>
+        )}
       </div>
     </aside>
   );

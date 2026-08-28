@@ -95,8 +95,8 @@ export const ScannerModal: React.FC = () => {
   const existingProjectsCount = results.filter(r => r.is_existing).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center bg-black/75 p-4 animate-in fade-in duration-150">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-4xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
@@ -347,7 +347,7 @@ export const ScannerModal: React.FC = () => {
               type="button"
               onClick={handleBatchImport}
               disabled={selectedPaths.size === 0}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-white disabled:opacity-40 text-zinc-950 rounded text-xs font-semibold transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded text-xs font-medium transition-colors shadow-sm cursor-pointer"
             >
               <IconFolderPlus size={15} />
               <span>Importar Selecionados ({selectedPaths.size})</span>

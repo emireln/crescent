@@ -172,8 +172,8 @@ export const NewProjectModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 select-none animate-in fade-in duration-150">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center bg-black/75 p-4 select-none animate-in fade-in duration-150">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
         {/* Header */}
         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
@@ -424,7 +424,7 @@ export const NewProjectModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={!path || !name}
-                className="px-4 py-1.5 bg-zinc-100 hover:bg-white disabled:opacity-40 text-zinc-950 rounded text-xs font-semibold shadow-sm transition-colors"
+                className="px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded text-xs font-medium shadow-sm transition-colors cursor-pointer"
               >
                 Cadastrar Projeto
               </button>
@@ -531,7 +531,7 @@ export const NewProjectModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={!parentFolder || !newProjectName || isScaffolding}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-white disabled:opacity-40 text-zinc-950 rounded text-xs font-semibold shadow-sm transition-colors"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded text-xs font-medium shadow-sm transition-colors cursor-pointer"
               >
                 <IconPlayerPlay size={14} />
                 <span>{isScaffolding ? 'Gerando Projeto...' : 'Criar & Importar Projeto'}</span>

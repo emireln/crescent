@@ -60,7 +60,7 @@ export const CodeSearchModal: React.FC = () => {
   if (!isCodeSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 select-none animate-in fade-in duration-150">
+    <div className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center p-4 bg-black/75 select-none animate-in fade-in duration-150">
       <div className="w-full max-w-3xl max-h-[85vh] bg-zinc-950 border border-zinc-800 rounded-lg shadow-2xl flex flex-col overflow-hidden">
         {/* Header Search Input */}
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/60 flex items-center gap-3">

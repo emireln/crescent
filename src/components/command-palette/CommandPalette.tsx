@@ -165,7 +165,7 @@ export const CommandPalette: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/75 p-4 pt-20 animate-in fade-in duration-100"
+      className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-start justify-center bg-black/75 p-4 pt-12 animate-in fade-in duration-100"
       onClick={() => setIsCommandPaletteOpen(false)}
     >
       <div

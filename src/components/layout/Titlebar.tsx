@@ -14,6 +14,7 @@ import {
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
+import { Tooltip } from '../common/Tooltip';
 
 export const Titlebar: React.FC = () => {
   const {
@@ -65,135 +66,142 @@ export const Titlebar: React.FC = () => {
   return (
     <header
       data-tauri-drag-region
-      className="h-10 w-full bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between px-3 shrink-0 select-none z-50"
+      className="relative z-50 h-11 w-full bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between px-3.5 shrink-0 select-none"
     >
       {/* Left: Brand / Logo */}
-      <div className="flex items-center gap-2.5">
-        <div className="flex items-center gap-2 text-zinc-100 font-semibold tracking-tight text-xs">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 text-zinc-100 font-semibold tracking-tight text-sm">
           <img
             src="/crescent-logo.png"
-            alt="Crescent"
-            className="h-4 w-auto max-w-[18px] object-contain rounded shrink-0"
+            alt="Crescent Logo"
+            className="w-5 h-5 object-contain shrink-0 rounded"
           />
-          <span>Crescent</span>
+          <span className="font-semibold text-zinc-100">Crescent</span>
         </div>
 
-        <span className="text-zinc-700 text-xs font-light">/</span>
+        <span className="text-zinc-800 text-xs">/</span>
 
-        <span className="text-[11px] text-zinc-400 font-mono">
+        <span className="text-xs text-zinc-400 font-mono">
           {projects.length} {projects.length === 1 ? 'projeto' : 'projetos'}
         </span>
       </div>
 
       {/* Center: Search & Quick Actions */}
-      <div className="flex items-center gap-1.5">
-        {/* Command Palette Button */}
-        <button
-          type="button"
-          onClick={() => setIsCommandPaletteOpen(true)}
-          title="Buscar projetos e comandos (Ctrl + K)"
-          className="group flex items-center justify-between gap-4 px-2.5 h-7 bg-zinc-900/70 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 rounded-md text-xs text-zinc-400 hover:text-zinc-200 transition-all w-56 sm:w-64 lg:w-72"
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <IconSearch size={13} className="text-zinc-500 group-hover:text-zinc-300 transition-colors shrink-0" />
-            <span className="truncate text-[11px]">Buscar projetos, tags...</span>
-          </div>
-          <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700/70 rounded text-[10px] text-zinc-300 font-mono shrink-0">
-            Ctrl K
-          </kbd>
-        </button>
+      <div className="flex items-center gap-2">
+        {/* Command Palette Capsule */}
+        <Tooltip content="Buscar projetos, tags e comandos" shortcut="Ctrl K" position="bottom">
+          <button
+            type="button"
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="group flex items-center justify-between gap-6 px-3 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 transition-colors w-60 sm:w-72 lg:w-80 cursor-pointer"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <IconSearch size={14} className="text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0" />
+              <span className="truncate text-xs">Buscar projetos, tags...</span>
+            </div>
+            <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[10px] text-zinc-300 font-mono shrink-0">
+              Ctrl K
+            </kbd>
+          </button>
+        </Tooltip>
 
         {/* Action Buttons */}
-        <button
-          type="button"
-          onClick={() => setIsNewProjectOpen(true)}
-          title="Novo Projeto (Ctrl + N)"
-          className="flex items-center gap-1 px-2 h-7 bg-transparent hover:bg-zinc-850 text-zinc-400 hover:text-zinc-100 rounded-md text-xs transition-colors"
-        >
-          <IconPlus size={14} className="text-zinc-400" />
-          <span className="hidden md:inline text-[11px] font-medium">Novo</span>
-        </button>
+        <Tooltip content="Adicionar novo projeto" shortcut="Ctrl N" position="bottom">
+          <button
+            type="button"
+            onClick={() => setIsNewProjectOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+          >
+            <IconPlus size={14} className="text-zinc-400" />
+            <span className="hidden sm:inline">Novo</span>
+          </button>
+        </Tooltip>
 
-        <button
-          type="button"
-          onClick={() => setIsScannerOpen(true)}
-          title="Escanear Pastas (Ctrl + F)"
-          className="flex items-center gap-1 px-2 h-7 bg-transparent hover:bg-zinc-850 text-zinc-400 hover:text-zinc-100 rounded-md text-xs transition-colors"
-        >
-          <IconScan size={14} className="text-zinc-400" />
-          <span className="hidden md:inline text-[11px] font-medium">Escanear</span>
-        </button>
+        <Tooltip content="Varredura de pastas no computador" shortcut="Ctrl F" position="bottom">
+          <button
+            type="button"
+            onClick={() => setIsScannerOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+          >
+            <IconScan size={14} className="text-zinc-400" />
+            <span className="hidden sm:inline">Escanear</span>
+          </button>
+        </Tooltip>
 
-        <button
-          type="button"
-          onClick={() => setIsAiChatOpen(true)}
-          title="Crescent AI Assistant (Ctrl + J)"
-          className="flex items-center gap-1 px-2 h-7 bg-transparent hover:bg-zinc-850 text-zinc-300 hover:text-white rounded-md text-xs transition-colors"
-        >
-          <IconBrain size={14} className="text-zinc-300" />
-          <span className="hidden md:inline text-[11px] font-medium">IA</span>
-        </button>
+        <Tooltip content="Crescent AI Assistant" shortcut="Ctrl J" position="bottom">
+          <button
+            type="button"
+            onClick={() => setIsAiChatOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-200 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+          >
+            <IconBrain size={14} className="text-zinc-300" />
+            <span className="hidden sm:inline">IA</span>
+          </button>
+        </Tooltip>
       </div>
 
-      {/* Right Area: Minimalist Creator Links + Native Window Controls */}
-      <div className="flex items-center gap-1">
-        {/* Clean Icon-Only Links with Tooltips */}
-        <div className="flex items-center gap-0.5 mr-1" data-no-drag>
-          <button
-            type="button"
-            onClick={() => api.openUrl('https://emirln.com')}
-            title="Portfolio (emirln.com)"
-            className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-850 rounded-md transition-colors"
-          >
-            <IconWorld size={14} />
-          </button>
+      {/* Right Area: Creator Links with Custom Tooltips + Window Controls */}
+      <div className="flex items-center gap-1.5">
+        {/* Creator Portfolio & Support Links */}
+        <div className="flex items-center gap-1 mr-1" data-no-drag>
+          <Tooltip content="Portfolio (emirln.com)" position="bottom">
+            <button
+              type="button"
+              onClick={() => api.openUrl('https://emirln.com')}
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <IconWorld size={15} />
+            </button>
+          </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => api.openUrl('https://buymeacoffee.com/emireln')}
-            title="Apoiar o projeto (Buy Me a Coffee)"
-            className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-850 rounded-md transition-colors"
-          >
-            <IconCoffee size={14} />
-          </button>
+          <Tooltip content="Apoiar o projeto (Buy Me a Coffee)" position="bottom">
+            <button
+              type="button"
+              onClick={() => api.openUrl('https://buymeacoffee.com/emireln')}
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <IconCoffee size={15} />
+            </button>
+          </Tooltip>
 
-          <button
-            type="button"
-            onClick={() => api.openUrl('https://github.com/emireln')}
-            title="GitHub (@emireln)"
-            className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-850 rounded-md transition-colors"
-          >
-            <IconBrandGithub size={14} />
-          </button>
+          <Tooltip content="GitHub (@emireln)" position="bottom">
+            <button
+              type="button"
+              onClick={() => api.openUrl('https://github.com/emireln')}
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <IconBrandGithub size={15} />
+            </button>
+          </Tooltip>
         </div>
 
-        {/* Native Window Controls */}
-        <div className="flex items-center h-full -mr-3" data-no-drag>
+        {/* Window Controls */}
+        <div className="flex items-center h-11 -mr-3.5" data-no-drag>
           <button
             type="button"
             onClick={handleMinimize}
-            className="w-9 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors"
             title="Minimizar"
           >
-            <IconMinus size={13} />
+            <IconMinus size={14} />
           </button>
 
           <button
             type="button"
             onClick={handleToggleMaximize}
-            className="w-9 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors"
             title={isMaximized ? 'Restaurar' : 'Maximizar'}
           >
-            {isMaximized ? <IconCopy size={12} /> : <IconSquare size={12} />}
+            {isMaximized ? <IconCopy size={13} /> : <IconSquare size={13} />}
           </button>
 
           <button
             type="button"
             onClick={handleClose}
-            className="w-9 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors"
             title="Fechar"
           >
-            <IconX size={13} />
+            <IconX size={14} />
           </button>
         </div>
       </div>

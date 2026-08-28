@@ -245,8 +245,8 @@ export const ProjectDetailModal: React.FC = () => {
   const statusBadge = getStatusBadge(status);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 select-none animate-in fade-in duration-150">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed top-11 inset-x-0 bottom-0 z-40 flex items-center justify-center bg-black/75 p-4 select-none animate-in fade-in duration-150">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-4xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3 flex-1 min-w-0">
