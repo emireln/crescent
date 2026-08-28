@@ -7,7 +7,6 @@ import {
   IconScan,
   IconDatabase,
   IconDownload,
-  IconShieldCheck,
   IconDeviceFloppy,
   IconCheck,
 } from '@tabler/icons-react';
@@ -234,9 +233,9 @@ export const SettingsModal: React.FC = () => {
 
           {/* App Info */}
           <div className="p-3 bg-zinc-950 border border-zinc-800 rounded flex items-center justify-between text-xs text-zinc-400">
-            <div className="flex items-center gap-2">
-              <IconShieldCheck size={16} className="text-zinc-300" />
-              <span>Crescent — Gerenciador Local de Projetos v0.1.0</span>
+            <div className="flex items-center gap-2.5">
+              <img src="/crescent-logo.png" alt="Crescent Logo" className="h-5 w-auto object-contain rounded shrink-0" />
+              <span className="text-zinc-200 font-medium">Crescent — Gerenciador Local de Projetos v0.1.0</span>
             </div>
             <span className="text-[11px] text-zinc-500 font-mono">100% Offline (PT-BR)</span>
           </div>

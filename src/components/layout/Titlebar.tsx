@@ -4,7 +4,6 @@ import {
   IconSquare,
   IconCopy,
   IconX,
-  IconMoonStars,
   IconSearch,
   IconFolderPlus,
   IconScan,
@@ -66,10 +65,12 @@ export const Titlebar: React.FC = () => {
     >
       {/* Left: Brand / Logo */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-zinc-100 font-semibold tracking-wide text-sm">
-          <div className="w-5 h-5 rounded bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-100 shadow-sm">
-            <IconMoonStars size={13} className="text-zinc-100" />
-          </div>
+        <div className="flex items-center gap-2.5 text-zinc-100 font-semibold tracking-wide text-sm">
+          <img
+            src="/crescent-logo.png"
+            alt="Crescent"
+            className="h-5 w-auto max-w-[20px] object-contain rounded shrink-0"
+          />
           <span>Crescent</span>
         </div>
 
