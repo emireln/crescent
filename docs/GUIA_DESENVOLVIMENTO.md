@@ -1,6 +1,6 @@
 # Guia de Desenvolvimento e Manutenção
 
-Neste documento, eu reuni todos os comandos, rotinas de teste, boas práticas e mecanismos de versionamento do **Crescent**.
+Neste documento, estão reunidos todos os comandos, rotinas de teste, boas práticas e mecanismos de versionamento do **Crescent**.
 
 ---
 
@@ -23,10 +23,10 @@ npm install
 
 ### Modo Desenvolvimento:
 ```bash
-# Executar a aplicação desktop completa com Tauri v2 (Hot-Reload de Frontend + Backend)
+# Executar a aplicação desktop completa com Tauri v2 (Hot-Reload de Frontend + Backend nativo)
 npm run tauri dev
 
-# Executar apenas o frontend web no navegador (com dados mockados do api.ts)
+# Executar servidor Vite de desenvolvimento do frontend
 npm run dev
 ```
 
@@ -34,7 +34,7 @@ npm run dev
 
 ## 3. Validação e Testes de Código
 
-Eu defini regras rigorosas de validação que devem ser executadas antes de cada commit:
+Antes de cada commit, as seguintes validações devem ser executadas com sucesso:
 
 ```bash
 # 1. Validar tipagem TypeScript e compilação do bundle frontend
@@ -51,10 +51,10 @@ cargo test --manifest-path src-tauri/Cargo.toml
 
 ## 4. Sistema de Versionamento Automático (*Auto Bump Version*)
 
-Para manter o versionamento sincronizado entre o ecossistema Node e Rust, eu criei o script [`scripts/bump-version.js`](../scripts/bump-version.js).
+Para manter o versionamento sincronizado entre o ecossistema Node e Rust, o projeto conta com o script [`scripts/bump-version.js`](../scripts/bump-version.js).
 
 ### Como funciona:
-Ao executar o bump, o script atualiza o número de versão `patch` (ex: `0.1.0` -> `0.1.1` -> `0.1.2`) simultaneamente em:
+O script atualiza o número de versão `patch` (ex: `0.1.20` -> `0.1.21`) simultaneamente em:
 1. `package.json`
 2. `src-tauri/tauri.conf.json`
 3. `src-tauri/Cargo.toml`

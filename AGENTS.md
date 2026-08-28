@@ -82,6 +82,9 @@ crescent/
 │   ├── utils/
 │   │   └── formatters.ts        # Formatadores de tamanho, datas relativas e badges
 │   └── components/
+│       ├── common/
+│       │   ├── CustomSelect.tsx # Dropdowns customizados com busca rápida e limite de 7 itens
+│       │   └── Tooltip.tsx      # Tooltips flutuantes nítidas sem contornos brancos
 │       ├── layout/
 │       │   ├── Titlebar.tsx     # Barra de título nativa com busca e links
 │       │   └── Sidebar.tsx      # Navegação por categorias, tags, workspaces e toggle collapse

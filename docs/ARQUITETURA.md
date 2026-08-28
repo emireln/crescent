@@ -1,6 +1,6 @@
 # Arquitetura do Crescent
 
-Neste documento, eu descrevo em detalhes como estruturei a arquitetura interna do **Crescent**, tanto no backend em Rust quanto no frontend em React/TypeScript, incluindo o novo **Crescent AI Assistant & Multi-LLM Gateway**.
+Neste documento, estão descritos em detalhes a arquitetura interna do **Crescent**, tanto no backend em Rust quanto no frontend em React/TypeScript, incluindo o **Crescent AI Assistant & Multi-LLM Gateway**.
 
 ---
 
@@ -8,7 +8,7 @@ Neste documento, eu descrevo em detalhes como estruturei a arquitetura interna d
 
 O Crescent opera como uma aplicação desktop híbrida utilizando o **Tauri v2**:
 - **Backend (Rust):** Responsável pelo acesso ao sistema de arquivos local, execução de processos externos (IDEs, terminais, scripts), controle de janelas nativas, monitoramento do Git, gerenciamento de portas TCP, limpeza de disco, busca global de código, gerador de projetos, inspetor de `.env`, gateway multi-LLMs com RAG de alta densidade e banco de dados SQLite local.
-- **Frontend (React 19 + TypeScript):** Responsável por toda a renderização da interface, gerenciamento de estado reativo, atalhos de teclado e apresentação dos dados.
+- **Frontend (React 19 + TypeScript):** Responsável por toda a renderização da interface reativa, componentes modulares, atalhos de teclado e apresentação dos dados.
 - **Camada de Comunicação (IPC Tauri):** Todas as chamadas entre React e Rust acontecem através de comandos assíncronos registrados com a macro `#[tauri::command]`.
 
 ```mermaid
@@ -40,10 +40,11 @@ graph TD
 
 ## 2. Banco de Dados SQLite Local (`src-tauri/src/db.rs`)
 
-Para garantir persistência segura e offline, eu utilizei a crate `rusqlite` com as seguintes definições:
+Para garantir persistência segura e offline, o Crescent utiliza a crate `rusqlite` com as seguintes definições:
 - **Localização padrão no Windows:** `%AppData%/Crescent/crescent.db`.
 - **Modo WAL (Write-Ahead Logging):** Ativado para permitir leituras simultâneas ultra rápidas sem travar transações de escrita.
 - **Chaves Estrangeiras (`PRAGMA foreign_keys = ON;`):** Exclusões em cascata automáticas para tags, scripts, portas e mensagens de IA ao remover registros associados.
+- **Persistência Total:** As preferências de visualização, ordenação, notas e histórico ficam preservadas no banco de dados mesmo após atualizações do aplicativo.
 
 ### Esquema das Tabelas:
 ```sql
@@ -145,7 +146,7 @@ CREATE TABLE IF NOT EXISTS project_ports (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
--- Configurações globais do usuário
+-- Configurações globais e preferências de UI do usuário
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -158,7 +159,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
 ### 3.1. Crescent AI Assistant & Multi-LLM Gateway (`src-tauri/src/ai.rs`)
 - **Provedores Suportados:**
-  - **Ollama:** Execução local 100% offline via `http://localhost:11434` com auto-descoberta de modelos instalados (`/api/tags`).
+  - **Ollama:** Execução local via `http://localhost:11434` com auto-descoberta de modelos instalados (`/api/tags`).
   - **Google Gemini:** `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`.
   - **OpenAI:** `gpt-4.5-preview`, `gpt-4o`, `gpt-4o-mini`, `o3-mini`, `o1`.
   - **DeepSeek:** `deepseek-chat` (V3) e `deepseek-reasoner` (R1).
