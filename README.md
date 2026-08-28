@@ -8,7 +8,7 @@ O **Crescent** é um aplicativo desktop nativo para Windows projetado para desen
 
 ---
 
-## ⚡ Funcionalidades
+## Funcionalidades
 
 - **Descoberta & Varredura Automática:** Detecção recursiva de repositórios e projetos (Rust, Node/TypeScript, React, Next, Vue, Python, FastAPI, Go, .NET, Java, PHP, Flutter, Docker).
 - **Análise de Metadados em Tempo Real:** Detecção da branch atual do Git, status de modificações pendentes (*dirty*), tamanho no disco e data da última modificação.
@@ -21,7 +21,7 @@ O **Crescent** é um aplicativo desktop nativo para Windows projetado para desen
 
 ---
 
-## 🛠️ Como Executar Localmente
+## Como Executar Localmente
 
 ### Pré-requisitos
 - [Node.js](https://nodejs.org/) (versão 18+)
@@ -48,7 +48,7 @@ npm run tauri build
 
 ---
 
-## 📚 Documentação Completa (`docs/`)
+## Documentação Completa (`docs/`)
 
 Para detalhes aprofundados sobre a construção e o funcionamento interno do projeto, consulte a pasta [`docs/`](./docs):
 - [**Visão Geral & Manifesto Pessoal**](./docs/README.md)
@@ -58,7 +58,7 @@ Para detalhes aprofundados sobre a construção e o funcionamento interno do pro
 
 ---
 
-## 👤 Autor & Links
+## Autor & Links
 
 - **Website / Portfólio:** [emirln.com](https://emirln.com)
 - **Apoiar no Buy Me a Coffee:** [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)
@@ -66,5 +66,5 @@ Para detalhes aprofundados sobre a construção e o funcionamento interno do pro
 
 ---
 
-## 📄 Licença
+## Licença
 Distribuído sob a licença MIT. Consulte `LICENSE` para obter mais informações.
