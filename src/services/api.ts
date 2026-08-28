@@ -91,6 +91,10 @@ export const api = {
     if (isTauri) return await invoke('create_tag', { name, color });
     throw new Error('Ambiente Tauri indisponível para criar tag.');
   },
+  updateTag: async (id: string, name: string, color: string): Promise<Tag> => {
+    if (isTauri) return await invoke('update_tag', { id, name, color });
+    throw new Error('Ambiente Tauri indisponível para atualizar tag.');
+  },
   deleteTag: async (id: string): Promise<void> => {
     if (isTauri) return await invoke('delete_tag', { id });
   },

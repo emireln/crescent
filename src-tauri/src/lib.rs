@@ -115,6 +115,12 @@ fn create_tag(state: State<DbState>, name: String, color: String) -> Result<Tag,
 }
 
 #[tauri::command]
+fn update_tag(state: State<DbState>, id: String, name: String, color: String) -> Result<Tag, String> {
+    let conn = state.conn.lock().map_err(|e| e.to_string())?;
+    db::update_tag_record(&conn, &id, &name, &color)
+}
+
+#[tauri::command]
 fn delete_tag(state: State<DbState>, id: String) -> Result<(), String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_tag_record(&conn, &id)
@@ -482,6 +488,7 @@ pub fn run() {
             relocate_project,
             get_tags,
             create_tag,
+            update_tag,
             delete_tag,
             add_project_script,
             delete_project_script,

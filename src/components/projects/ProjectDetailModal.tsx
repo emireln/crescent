@@ -472,13 +472,14 @@ export const ProjectDetailModal: React.FC = () => {
                               isSelected ? prev.filter(id => id !== tag.id) : [...prev, tag.id]
                             );
                           }}
-                          className={`text-xs px-2.5 py-0.5 rounded border transition-colors ${
+                          className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded transition-colors cursor-pointer ${
                             isSelected
-                              ? 'bg-zinc-100 text-zinc-950 border-zinc-100 font-semibold'
-                              : 'bg-zinc-850 text-zinc-400 border-zinc-750 hover:text-zinc-200'
+                              ? 'bg-zinc-100 text-zinc-950 font-semibold'
+                              : 'bg-zinc-850 text-zinc-400 hover:text-zinc-200'
                           }`}
                         >
-                          #{tag.name}
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+                          <span>#{tag.name}</span>
                         </button>
                       );
                     })}

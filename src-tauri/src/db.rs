@@ -759,6 +759,20 @@ pub fn create_tag_record(conn: &Connection, name: &str, color: &str) -> Result<T
     })
 }
 
+pub fn update_tag_record(conn: &Connection, id: &str, name: &str, color: &str) -> Result<Tag, String> {
+    conn.execute(
+        "UPDATE tags SET name = ?1, color = ?2 WHERE id = ?3",
+        params![name, color, id],
+    )
+    .map_err(|e| format!("Falha ao atualizar tag: {}", e))?;
+
+    Ok(Tag {
+        id: id.to_string(),
+        name: name.to_string(),
+        color: color.to_string(),
+    })
+}
+
 pub fn delete_tag_record(conn: &Connection, id: &str) -> Result<(), String> {
     conn.execute("DELETE FROM tags WHERE id = ?1", params![id])
         .map_err(|e| e.to_string())?;

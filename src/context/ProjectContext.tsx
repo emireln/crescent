@@ -100,6 +100,7 @@ interface ProjectContextType {
 
   // Tags Actions
   createTag: (name: string, color: string) => Promise<Tag>;
+  updateTag: (id: string, name: string, color: string) => Promise<Tag>;
   deleteTag: (id: string) => Promise<void>;
 
   // Scripts & Ports Actions
@@ -502,6 +503,13 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return t;
   };
 
+  const updateTag = async (id: string, name: string, color: string): Promise<Tag> => {
+    const t = await api.updateTag(id, name, color);
+    await refreshTags();
+    await refreshProjects();
+    return t;
+  };
+
   const deleteTag = async (id: string): Promise<void> => {
     await api.deleteTag(id);
     if (selectedTagId === id) setSelectedTagId(null);
@@ -624,6 +632,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteWorkspace,
         openWorkspaceProjects,
         createTag,
+        updateTag,
         deleteTag,
         addScript,
         deleteScript,

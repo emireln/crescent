@@ -39,6 +39,47 @@ pub fn open_editor(path: &str, editor: &str, custom_path: Option<&str>) -> Resul
                     .spawn()
                     .map_err(|e| format!("Falha ao abrir no Cursor: {}", e))?;
             }
+            "windsurf" => {
+                Command::new("cmd")
+                    .args(["/c", "windsurf", path])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .map_err(|e| format!("Falha ao abrir no Windsurf: {}", e))?;
+            }
+            "trae" => {
+                Command::new("cmd")
+                    .args(["/c", "trae", path])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .map_err(|e| format!("Falha ao abrir no Trae: {}", e))?;
+            }
+            "kiro" => {
+                Command::new("cmd")
+                    .args(["/c", "kiro", path])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .map_err(|e| format!("Falha ao abrir no Kiro: {}", e))?;
+            }
+            "sublime" => {
+                Command::new("cmd")
+                    .args(["/c", "subl", path])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .map_err(|e| format!("Falha ao abrir no Sublime Text: {}", e))?;
+            }
+            "neovim" => {
+                Command::new("cmd")
+                    .args(["/c", "nvim-qt", path])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .or_else(|_| {
+                        Command::new("cmd")
+                            .args(["/c", "nvim", path])
+                            .creation_flags(CREATE_NO_WINDOW)
+                            .spawn()
+                    })
+                    .map_err(|e| format!("Falha ao abrir no Neovim: {}", e))?;
+            }
             "zed" => {
                 Command::new("cmd")
                     .args(["/c", "zed", path])
@@ -94,6 +135,11 @@ pub fn open_editor(path: &str, editor: &str, custom_path: Option<&str>) -> Resul
     {
         let prog = match editor {
             "cursor" => "cursor",
+            "windsurf" => "windsurf",
+            "trae" => "trae",
+            "kiro" => "kiro",
+            "sublime" => "subl",
+            "neovim" => "nvim",
             "zed" => "zed",
             "idea" => "idea",
             "webstorm" => "webstorm",

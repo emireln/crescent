@@ -306,28 +306,33 @@ export const SettingsModal: React.FC = () => {
               <span>Editor de Código Padrão</span>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {[
                 { id: 'code', label: 'VS Code' },
                 { id: 'cursor', label: 'Cursor' },
+                { id: 'windsurf', label: 'Windsurf' },
+                { id: 'trae', label: 'Trae' },
+                { id: 'kiro', label: 'Kiro' },
                 { id: 'zed', label: 'Zed' },
                 { id: 'idea', label: 'IntelliJ IDEA' },
                 { id: 'webstorm', label: 'WebStorm' },
                 { id: 'pycharm', label: 'PyCharm' },
+                { id: 'sublime', label: 'Sublime Text' },
+                { id: 'neovim', label: 'Neovim' },
                 { id: 'custom', label: 'Personalizado' },
               ].map(opt => (
                 <button
                   key={opt.id}
                   type="button"
                   onClick={() => setEditor(opt.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs text-left transition-colors cursor-pointer ${
+                  className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs text-left transition-colors cursor-pointer ${
                     editor === opt.id
                       ? 'bg-zinc-800 text-zinc-100 font-medium'
                       : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                   }`}
                 >
                   <EditorIcon editor={opt.id} size={15} className={editor === opt.id ? 'text-zinc-100' : 'text-zinc-400'} />
-                  <span>{opt.label}</span>
+                  <span className="truncate">{opt.label}</span>
                 </button>
               ))}
             </div>

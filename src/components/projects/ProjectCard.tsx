@@ -214,9 +214,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           {project.tags.map(tag => (
             <span
               key={tag.id}
-              className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-400"
+              className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-300"
             >
-              #{tag.name}
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+              <span>#{tag.name}</span>
             </span>
           ))}
         </div>

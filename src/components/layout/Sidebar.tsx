@@ -18,6 +18,7 @@ import {
   IconDatabase,
   IconCode,
   IconBrain,
+  IconPalette,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
 } from '@tabler/icons-react';
@@ -39,6 +40,7 @@ export const Sidebar: React.FC = () => {
     tags,
     stats,
     createTag,
+    updateTag,
     deleteTag,
     setIsNewProjectOpen,
     setIsScannerOpen,
@@ -59,7 +61,8 @@ export const Sidebar: React.FC = () => {
 
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagName, setNewTagName] = useState('');
-  const newTagColor = '#a1a1aa';
+  const [newTagColor, setNewTagColor] = useState('#a1a1aa');
+  const [editingTag, setEditingTag] = useState<{ id: string; name: string; color: string } | null>(null);
 
   // Load from SQLite on mount
   useEffect(() => {
@@ -89,7 +92,19 @@ export const Sidebar: React.FC = () => {
     try {
       await createTag(newTagName.trim(), newTagColor);
       setNewTagName('');
+      setNewTagColor('#a1a1aa');
       setIsAddingTag(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTag || !editingTag.name.trim()) return;
+    try {
+      await updateTag(editingTag.id, editingTag.name.trim(), editingTag.color);
+      setEditingTag(null);
     } catch (err) {
       console.error(err);
     }
@@ -411,7 +426,10 @@ export const Sidebar: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setIsAddingTag(prev => !prev)}
+                onClick={() => {
+                  setEditingTag(null);
+                  setIsAddingTag(prev => !prev);
+                }}
                 className="p-1 hover:bg-zinc-850 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Criar Tag"
               >
@@ -420,16 +438,50 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {isAddingTag && (
-              <form onSubmit={handleCreateTag} className="p-2 mb-1 bg-zinc-900 rounded-lg space-y-2">
-                <input
-                  type="text"
-                  value={newTagName}
-                  onChange={e => setNewTagName(e.target.value)}
-                  placeholder="Nome da tag..."
-                  autoFocus
-                  className="w-full px-2.5 py-1.5 bg-zinc-950 rounded text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
-                />
-                <div className="flex items-center justify-end gap-1.5">
+              <form onSubmit={handleCreateTag} className="p-2.5 mb-1.5 bg-zinc-900 rounded-lg space-y-2.5">
+                <div className="flex items-center gap-2 bg-zinc-950 px-2.5 py-1.5 rounded">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: newTagColor }} />
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={e => setNewTagName(e.target.value)}
+                    placeholder="Nome da tag..."
+                    autoFocus
+                    className="w-full bg-transparent text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <span className="block text-[10px] text-zinc-400 mb-1.5 font-medium">Cor da Tag:</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { name: 'Zinc', hex: '#a1a1aa' },
+                      { name: 'Azul', hex: '#60a5fa' },
+                      { name: 'Esmeralda', hex: '#34d399' },
+                      { name: 'Âmbar', hex: '#f59e0b' },
+                      { name: 'Vermelho', hex: '#f87171' },
+                      { name: 'Roxo', hex: '#c084fc' },
+                      { name: 'Ciano', hex: '#38bdf8' },
+                      { name: 'Rosa', hex: '#f472b6' },
+                      { name: 'Lima', hex: '#a3e635' },
+                    ].map(c => (
+                      <button
+                        key={c.hex}
+                        type="button"
+                        onClick={() => setNewTagColor(c.hex)}
+                        className={`w-4 h-4 rounded-full transition-transform cursor-pointer flex items-center justify-center ${
+                          newTagColor === c.hex
+                            ? 'scale-125 ring-2 ring-zinc-100 ring-offset-1 ring-offset-zinc-900'
+                            : 'hover:scale-110 opacity-75 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-1.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setIsAddingTag(false)}
@@ -441,7 +493,7 @@ export const Sidebar: React.FC = () => {
                     type="submit"
                     className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium cursor-pointer"
                   >
-                    Salvar
+                    Criar
                   </button>
                 </div>
               </form>
@@ -455,6 +507,72 @@ export const Sidebar: React.FC = () => {
               ) : (
                 tags.map(tag => {
                   const isSelected = selectedTagId === tag.id;
+                  const isEditing = editingTag?.id === tag.id;
+
+                  if (isEditing && editingTag) {
+                    return (
+                      <form key={tag.id} onSubmit={handleUpdateTag} className="p-2.5 mb-1.5 bg-zinc-900 rounded-lg space-y-2.5">
+                        <div className="flex items-center gap-2 bg-zinc-950 px-2.5 py-1.5 rounded">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: editingTag.color }} />
+                          <input
+                            type="text"
+                            value={editingTag.name}
+                            onChange={e => setEditingTag({ ...editingTag, name: e.target.value })}
+                            placeholder="Nome da tag..."
+                            autoFocus
+                            className="w-full bg-transparent text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <span className="block text-[10px] text-zinc-400 mb-1.5 font-medium">Cor da Tag:</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                              { name: 'Zinc', hex: '#a1a1aa' },
+                              { name: 'Azul', hex: '#60a5fa' },
+                              { name: 'Esmeralda', hex: '#34d399' },
+                              { name: 'Âmbar', hex: '#f59e0b' },
+                              { name: 'Vermelho', hex: '#f87171' },
+                              { name: 'Roxo', hex: '#c084fc' },
+                              { name: 'Ciano', hex: '#38bdf8' },
+                              { name: 'Rosa', hex: '#f472b6' },
+                              { name: 'Lima', hex: '#a3e635' },
+                            ].map(c => (
+                              <button
+                                key={c.hex}
+                                type="button"
+                                onClick={() => setEditingTag({ ...editingTag, color: c.hex })}
+                                className={`w-4 h-4 rounded-full transition-transform cursor-pointer flex items-center justify-center ${
+                                  editingTag.color === c.hex
+                                    ? 'scale-125 ring-2 ring-zinc-100 ring-offset-1 ring-offset-zinc-900'
+                                    : 'hover:scale-110 opacity-75 hover:opacity-100'
+                                }`}
+                                style={{ backgroundColor: c.hex }}
+                                title={c.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-1.5 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingTag(null)}
+                            className="px-2 py-1 text-[11px] text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium cursor-pointer"
+                          >
+                            Salvar
+                          </button>
+                        </div>
+                      </form>
+                    );
+                  }
+
                   return (
                     <div
                       key={tag.id}
@@ -477,20 +595,35 @@ export const Sidebar: React.FC = () => {
                         className="flex items-center gap-2 flex-1 text-left truncate cursor-pointer"
                         title={`Filtrar pela tag #${tag.name}`}
                       >
-                        <span className="text-zinc-400 font-mono">#</span>
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+                        <span className="text-zinc-500 font-mono text-[11px]">#</span>
                         <span className="truncate">{tag.name}</span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.stopPropagation();
-                          deleteTag(tag.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
-                        title="Excluir Tag"
-                      >
-                        <IconTrash size={13} />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setIsAddingTag(false);
+                            setEditingTag({ id: tag.id, name: tag.name, color: tag.color || '#a1a1aa' });
+                          }}
+                          className="text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
+                          title="Alterar Cor da Tag"
+                        >
+                          <IconPalette size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            deleteTag(tag.id);
+                          }}
+                          className="text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
+                          title="Excluir Tag"
+                        >
+                          <IconTrash size={13} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })

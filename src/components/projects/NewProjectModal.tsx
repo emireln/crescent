@@ -358,14 +358,14 @@ export const NewProjectModal: React.FC = () => {
                           isAssigned ? prev.filter(id => id !== t.id) : [...prev, t.id]
                         );
                       }}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs border transition-colors ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
                         isAssigned
-                          ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-medium'
-                          : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                          ? 'bg-zinc-100 text-zinc-950 font-semibold'
+                          : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
-                      <span className="text-zinc-500 font-mono">#</span>
-                      <span>{t.name}</span>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.color || '#a1a1aa' }} />
+                      <span>#{t.name}</span>
                     </button>
                   );
                 })}
