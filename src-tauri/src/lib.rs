@@ -1,39 +1,40 @@
-pub mod actions;
-pub mod ai;
-pub mod cleaner;
-pub mod code_search;
-pub mod db;
-pub mod env_manager;
-pub mod git;
-pub mod port_sentinel;
-pub mod scaffolder;
-pub mod scanner;
-pub mod tray;
-pub mod window;
-
 use std::collections::HashMap;
 use std::path::Path;
 use tauri::State;
+
+mod actions;
+mod ai;
+mod cleaner;
+mod code_search;
+mod db;
+mod env_manager;
+mod git;
+mod port_sentinel;
+mod scaffolder;
+mod scanner;
+mod tray;
+mod window;
 
 use actions::{
     execute_project_script, open_browser_url, open_editor, open_explorer, open_terminal,
     read_project_readme, ScriptExecutionResult,
 };
-use ai::{build_system_context, list_ollama_local_models, send_chat_to_provider};
-use cleaner::{
-    analyze_project_cleanable, clean_selected_paths, CleanResult, ProjectCleanableInfo,
+use ai::{list_ollama_local_models, send_chat_to_provider, LlmResponse};
+use cleaner::{analyze_project_cleanable, clean_selected_paths, CleanResult, ProjectCleanableInfo};
+use code_search::{
+    search_code_across_projects, CodeSearchResult, ProjectSearchTarget,
 };
-use code_search::{search_code_across_projects, CodeSearchResult, ProjectSearchTarget};
 use db::{
     add_port_record, add_script_record, create_tag_record, delete_ai_conversation_record,
     delete_port_record, delete_project_record, delete_script_record, delete_tag_record,
-    delete_workspace_record, export_all_data, fetch_all_ai_conversations, fetch_all_projects,
-    fetch_all_settings, fetch_all_tags, fetch_all_workspaces, fetch_messages_for_conversation,
-    fetch_project_by_id, init_db, insert_ai_conversation, insert_ai_message_record, insert_project,
-    insert_workspace, save_project_notes, save_setting_record, toggle_project_favorite,
-    toggle_project_pinned, update_project_path, update_project_record, update_workspace_record,
-    AiConversation, AiMessage, CreateProjectInput, DbState, Project, ProjectPort, ProjectScript,
-    Tag, UpdateProjectInput, Workspace,
+    delete_workspace_record, export_all_data, fetch_all_ai_conversations,
+    fetch_all_projects, fetch_all_settings, fetch_all_tags, fetch_all_workspaces,
+    fetch_messages_for_conversation, fetch_project_by_id, init_db, insert_ai_conversation,
+    insert_ai_message_record, insert_project, insert_workspace, save_project_notes,
+    save_setting_record, toggle_project_favorite, toggle_project_pinned,
+    update_ai_conversation_model as update_ai_conversation_model_db, update_project_path,
+    update_project_record, update_workspace_record, AiConversation, AiMessage, CreateProjectInput, DbState, Project,
+    ProjectPort, ProjectScript, Tag, UpdateProjectInput, Workspace,
 };
 use env_manager::{create_env_from_example, inspect_env_files, EnvFileInfo};
 use git::{
@@ -46,10 +47,6 @@ use scaffolder::{get_available_templates, scaffold_project, ProjectTemplate};
 use scanner::{analyze_single_project, scan_directory, DiscoveredProject, ScanOptions};
 use tray::setup_tray;
 use window::{window_close, window_is_maximized, window_minimize, window_toggle_maximize};
-
-// -------------------------------------------------------------
-// Core Project Commands
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn get_projects(state: State<DbState>) -> Result<Vec<Project>, String> {
@@ -105,10 +102,6 @@ fn relocate_project(state: State<DbState>, id: String, new_path: String) -> Resu
     update_project_path(&conn, &id, &new_path)
 }
 
-// -------------------------------------------------------------
-// Tags
-// -------------------------------------------------------------
-
 #[tauri::command]
 fn get_tags(state: State<DbState>) -> Result<Vec<Tag>, String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
@@ -126,10 +119,6 @@ fn delete_tag(state: State<DbState>, id: String) -> Result<(), String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_tag_record(&conn, &id)
 }
-
-// -------------------------------------------------------------
-// Scripts & Ports
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn add_project_script(
@@ -164,10 +153,6 @@ fn delete_project_port(state: State<DbState>, id: String) -> Result<(), String> 
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     delete_port_record(&conn, &id)
 }
-
-// -------------------------------------------------------------
-// Workspaces
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn get_workspaces(state: State<DbState>) -> Result<Vec<Workspace>, String> {
@@ -204,10 +189,6 @@ fn delete_workspace(state: State<DbState>, id: String) -> Result<(), String> {
     delete_workspace_record(&conn, &id)
 }
 
-// -------------------------------------------------------------
-// AI Assistant & Multi-LLM Gateway
-// -------------------------------------------------------------
-
 #[tauri::command]
 fn get_ai_conversations(
     state: State<DbState>,
@@ -218,10 +199,7 @@ fn get_ai_conversations(
 }
 
 #[tauri::command]
-fn get_ai_messages(
-    state: State<DbState>,
-    conversation_id: String,
-) -> Result<Vec<AiMessage>, String> {
+fn get_ai_messages(state: State<DbState>, conversation_id: String) -> Result<Vec<AiMessage>, String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
     fetch_messages_for_conversation(&conn, &conversation_id)
 }
@@ -252,7 +230,7 @@ fn update_ai_conversation_model(
     model: String,
 ) -> Result<(), String> {
     let conn = state.conn.lock().map_err(|e| e.to_string())?;
-    db::update_ai_conversation_model(&conn, &id, &provider, &model)
+    update_ai_conversation_model_db(&conn, &id, &provider, &model)
 }
 
 #[tauri::command]
@@ -264,67 +242,52 @@ fn send_ai_chat_message(
     model: String,
     project_id: Option<String>,
 ) -> Result<AiMessage, String> {
-    let conn = state.conn.lock().map_err(|e| e.to_string())?;
-
-    // 1. Record user message
-    let _ = insert_ai_message_record(
-        &conn,
-        &conversation_id,
-        "user",
-        &user_message,
-        &provider,
-        &model,
-        0,
-        0,
-    )?;
-
-    // 2. Fetch projects context for RAG
-    let all_projects = fetch_all_projects(&conn).unwrap_or_default();
-    let active_project = if let Some(ref pid) = project_id {
-        fetch_project_by_id(&conn, pid).unwrap_or(None)
-    } else {
-        None
+    let (all_projects, active_project, history, settings) = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let all = fetch_all_projects(&conn)?;
+        let active = match project_id.as_deref() {
+            Some(pid) => fetch_project_by_id(&conn, pid)?,
+            None => None,
+        };
+        let hist = fetch_messages_for_conversation(&conn, &conversation_id)?;
+        let st = fetch_all_settings(&conn)?;
+        (all, active, hist, st)
     };
 
-    // 3. Fetch settings
-    let settings = fetch_all_settings(&conn).unwrap_or_default();
     let high_density = settings
         .get("ai_high_density_mode")
         .map(|v| v != "false")
         .unwrap_or(true);
 
-    // 4. Build high-density context
-    let system_context = build_system_context(&all_projects, active_project.as_ref(), high_density);
+    let system_context = ai::build_system_context(&all_projects, active_project.as_ref(), high_density);
 
-    // 5. Fetch message history
-    let history = fetch_messages_for_conversation(&conn, &conversation_id).unwrap_or_default();
-    let history_slice = if history.len() > 1 {
-        &history[..history.len() - 1]
-    } else {
-        &[]
-    };
+    {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        insert_ai_message_record(&conn, &conversation_id, "user", &user_message, &provider, &model, 0, 0)?;
+    }
 
-    // 6. Query LLM
-    let response = send_chat_to_provider(
+    let response: LlmResponse = send_chat_to_provider(
         &provider,
         &model,
         &system_context,
-        history_slice,
+        &history,
         &user_message,
         &settings,
     )?;
 
-    // 7. Record assistant message
-    let assistant_msg = insert_ai_message_record(
-        &conn,
-        &conversation_id,
-        "assistant",
-        &response.content,
-        &response.provider,
-        &response.model,
-        response.prompt_tokens,
-        response.completion_tokens,
-    )?;
+    let assistant_msg = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        insert_ai_message_record(
+            &conn,
+            &conversation_id,
+            "assistant",
+            &response.content,
+            &response.provider,
+            &response.model,
+            response.prompt_tokens,
+            response.completion_tokens,
+        )?
+    };
 
     Ok(assistant_msg)
 }
@@ -333,10 +296,6 @@ fn send_ai_chat_message(
 fn get_ollama_models(ollama_url: Option<String>) -> Result<Vec<String>, String> {
     list_ollama_local_models(&ollama_url.unwrap_or_default())
 }
-
-// -------------------------------------------------------------
-// Port Sentinel (Active TCP Monitor & Process Killer)
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn check_port_status(port: u16) -> PortStatusInfo {
@@ -353,10 +312,6 @@ fn kill_port(port: u16) -> Result<String, String> {
     kill_process_on_port(port)
 }
 
-// -------------------------------------------------------------
-// Disk Cleaner
-// -------------------------------------------------------------
-
 #[tauri::command]
 fn analyze_cleanable(
     project_id: String,
@@ -370,10 +325,6 @@ fn analyze_cleanable(
 fn clean_project_targets(paths: Vec<String>) -> CleanResult {
     clean_selected_paths(paths)
 }
-
-// -------------------------------------------------------------
-// Advanced Git Insights & Heatmap
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn get_project_git_info(path: String) -> GitInfo {
@@ -390,10 +341,6 @@ fn get_git_activity(project_paths: Vec<String>) -> Vec<HeatmapDay> {
     get_activity_heatmap(project_paths)
 }
 
-// -------------------------------------------------------------
-// Global Code Grep
-// -------------------------------------------------------------
-
 #[tauri::command]
 fn search_code(
     query: String,
@@ -403,10 +350,6 @@ fn search_code(
 ) -> Vec<CodeSearchResult> {
     search_code_across_projects(&query, projects, case_sensitive, max_results)
 }
-
-// -------------------------------------------------------------
-// Templates & Scaffolder
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn get_templates() -> Vec<ProjectTemplate> {
@@ -422,10 +365,6 @@ fn scaffold_new_project(
     scaffold_project(&template_id, &target_dir, &project_name)
 }
 
-// -------------------------------------------------------------
-// Env Manager (.env & .env.example)
-// -------------------------------------------------------------
-
 #[tauri::command]
 fn get_env_info(project_path: String) -> EnvFileInfo {
     inspect_env_files(&project_path)
@@ -435,10 +374,6 @@ fn get_env_info(project_path: String) -> EnvFileInfo {
 fn generate_env_from_example(project_path: String) -> Result<String, String> {
     create_env_from_example(&project_path)
 }
-
-// -------------------------------------------------------------
-// Scanner & Launchers
-// -------------------------------------------------------------
 
 #[tauri::command]
 fn scan_projects_directory(
@@ -526,7 +461,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(db_state)
         .setup(|app| {
-            // Setup Windows System Tray
             if let Err(e) = setup_tray(app.handle()) {
                 eprintln!("[Crescent Tray Error] {}", e);
             }

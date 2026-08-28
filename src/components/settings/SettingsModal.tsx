@@ -76,12 +76,12 @@ export const SettingsModal: React.FC = () => {
     try {
       const models = await api.getOllamaModels(ollamaUrl);
       if (models.length > 0) {
-        setOllamaStatus(`✓ Conectado! ${models.length} modelo(s) detectado(s): ${models.slice(0, 3).join(', ')}...`);
+        setOllamaStatus(`Conectado com sucesso. ${models.length} modelo(s) detectado(s): ${models.slice(0, 3).join(', ')}...`);
       } else {
-        setOllamaStatus('✓ Conectado ao Ollama (nenhum modelo baixado ainda).');
+        setOllamaStatus('Conectado ao Ollama (nenhum modelo baixado ainda).');
       }
     } catch (err: any) {
-      setOllamaStatus(`✗ Falha ao conectar: ${err?.message || err}`);
+      setOllamaStatus(`Falha ao conectar: ${err?.message || err}`);
     } finally {
       setOllamaTesting(false);
     }

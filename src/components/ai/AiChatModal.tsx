@@ -207,7 +207,7 @@ export const AiChatModal: React.FC = () => {
         id: Math.random().toString(),
         conversation_id: targetConv.id,
         role: 'assistant',
-        content: `❌ **Erro ao conectar com ${selectedProvider.toUpperCase()}:**\n${err?.message || err}\n\n*Dica: Verifique se sua chave de API ou se o Ollama está ativo nas Configurações.*`,
+        content: `**Erro ao conectar com ${selectedProvider.toUpperCase()}:**\n${err?.message || err}\n\n*Dica: Verifique se sua chave de API ou se o Ollama está ativo nas Configurações.*`,
         provider: selectedProvider,
         model: selectedModel,
         prompt_tokens: 0,

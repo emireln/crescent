@@ -690,14 +690,14 @@ export const ProjectDetailModal: React.FC = () => {
                 <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
                   <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Arquivo .env</span>
                   <div className="text-xs font-mono text-zinc-200">
-                    {envInfo?.has_env ? '✓ Presente no projeto' : '✗ Ausente'}
+                    {envInfo?.has_env ? 'Presente' : 'Ausente'}
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded-lg space-y-1">
                   <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Template .env.example</span>
                   <div className="text-xs font-mono text-zinc-200">
-                    {envInfo?.has_example ? '✓ Presente no projeto' : '✗ Não encontrado'}
+                    {envInfo?.has_example ? 'Presente' : 'Não encontrado'}
                   </div>
                 </div>
 

@@ -26,10 +26,6 @@ pub struct OllamaTagsResponse {
     pub models: Option<Vec<OllamaTagItem>>,
 }
 
-// -------------------------------------------------------------
-// High-Density Context Builder (RAG & Token Optimizer)
-// -------------------------------------------------------------
-
 pub fn build_system_context(
     all_projects: &[Project],
     active_project: Option<&Project>,
@@ -115,10 +111,6 @@ pub fn build_system_context(
 
     ctx
 }
-
-// -------------------------------------------------------------
-// Multi-LLM API Dispatcher
-// -------------------------------------------------------------
 
 pub fn send_chat_to_provider(
     provider: &str,

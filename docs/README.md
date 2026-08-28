@@ -6,9 +6,9 @@ Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigat�
 
 ---
 
-## 🧭 Índice da Documentação
+## Índice da Documentação
 
-- [**1. Visão Geral e Minha Motivação**](#1-visão-geral-e-minha-motivação)
+- [**1. Visão Geral, Motivação e Desenvolvimento**](#1-visão-geral-motivação-e-desenvolvimento)
 - [**2. A Stack Tecnológica Escolhida**](#2-a-stack-tecnológica-escolhida)
 - [**3. Funcionalidades Principais**](#3-funcionalidades-principais)
 - [**4. Documentação Técnica Detalhada**](#4-documentação-técnica-detalhada)
@@ -57,18 +57,18 @@ Quando planejei o projeto, a escolha das tecnologias foi guiada por performance,
 
 ## 3. Funcionalidades Principais
 
-- ⚡ **Varredura Recursiva Multi-Nível:** Motor inteligente que escaneia diretórios de código ignorando automaticamente pastas pesadas (`node_modules`, `target`, `.git`, `.venv`, etc.).
-- 🔍 **Detecção Estilo GitHub Linguist:** Reconhecimento automático de manifestos e perfilamento linguístico de arquivos para Rust, TypeScript, JavaScript, Python, Go, C#/.NET, Java, Kotlin, PHP, Ruby, Dart, Swift, Zig, Lua, Solidity, Docker, Kubernetes, etc.
-- 🎯 **Ações de 1 Clique:** Disparo direto de editores de código, terminais (PowerShell, Windows Terminal, Git Bash, CMD) e Windows Explorer.
-- 📝 **Bloco de Notas Markdown & Leitor de README:** Editor com modo dividido (*split-view*) e visualizador do `README.md` original do projeto.
-- 🌐 **Gerenciador de Portas & Scripts:** Lista de portas locais com botão para abrir `http://localhost:<porta>` e executor de scripts com console de saída integrado.
-- 🛡️ **Tratamento de Pastas Ausentes:** Se um diretório for renomeado ou movido no disco, o Crescent destaca o item e oferece botão imediato para localizar o novo caminho.
+- **Varredura Recursiva Multi-Nível:** Motor inteligente que escaneia diretórios de código ignorando automaticamente pastas pesadas (`node_modules`, `target`, `.git`, `.venv`, etc.).
+- **Detecção Estilo GitHub Linguist:** Reconhecimento automático de manifestos e perfilamento linguístico de arquivos para Rust, TypeScript, JavaScript, Python, Go, C#/.NET, Java, Kotlin, PHP, Ruby, Dart, Swift, Zig, Lua, Solidity, Docker, Kubernetes, etc.
+- **Ações de 1 Clique:** Disparo direto de editores de código, terminais (PowerShell, Windows Terminal, Git Bash, CMD) e Windows Explorer.
+- **Bloco de Notas Markdown & Leitor de README:** Editor com modo dividido (*split-view*) e visualizador do `README.md` original do projeto.
+- **Gerenciador de Portas & Scripts:** Lista de portas locais com botão para abrir `http://localhost:<porta>` e executor de scripts com console de saída integrado.
+- **Tratamento de Pastas Ausentes:** Se um diretório for renomeado ou movido no disco, o Crescent destaca o item e oferece botão imediato para localizar o novo caminho.
 
 ---
 
 ## 4. Links e Contato
 
-- 🌐 **Website / Portfólio:** [emirln.com](https://emirln.com)
-- ☕ **Apoiar o Projeto:** [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)
-- 🐙 **GitHub:** [github.com/emireln](https://github.com/emireln)
-- 📦 **Repositório do Crescent:** [github.com/emireln/crescent](https://github.com/emireln/crescent)
+- **Website / Portfólio:** [emirln.com](https://emirln.com)
+- **Apoiar o Projeto:** [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)
+- **GitHub:** [github.com/emireln](https://github.com/emireln)
+- **Repositório do Crescent:** [github.com/emireln/crescent](https://github.com/emireln/crescent)

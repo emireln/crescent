@@ -155,10 +155,6 @@ pub fn analyze_single_project<P: AsRef<Path>>(path: P) -> Option<DiscoveredProje
     })
 }
 
-// -----------------------------------------------------------------------------
-// Comprehensive Stack & Language Detection (GitHub Linguist Style)
-// -----------------------------------------------------------------------------
-
 pub fn detect_project_markers(dir: &Path) -> Option<(String, Vec<String>, Option<String>)> {
     let mut techs: Vec<String> = Vec::new();
     let mut primary_tech: Option<String> = None;
@@ -293,10 +289,6 @@ pub fn detect_project_markers(dir: &Path) -> Option<(String, Vec<String>, Option
         None
     }
 }
-
-// -----------------------------------------------------------------------------
-// Specialized Detectors
-// -----------------------------------------------------------------------------
 
 fn detect_rust(
     dir: &Path,
@@ -1227,10 +1219,6 @@ fn detect_devops_cloud(dir: &Path, techs: &mut Vec<String>) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Language Profiling via Extensions (Linguist)
-// -----------------------------------------------------------------------------
-
 fn profile_extensions(dir: &Path) -> HashMap<String, usize> {
     let mut counts: HashMap<String, usize> = HashMap::new();
     let ignores = ["node_modules", "target", ".venv", "venv", ".git", "dist", "build", "vendor", "bin", "obj", ".idea", ".vscode"];
@@ -1291,10 +1279,6 @@ fn profile_extensions(dir: &Path) -> HashMap<String, usize> {
 
     counts
 }
-
-// -----------------------------------------------------------------------------
-// Utilities
-// -----------------------------------------------------------------------------
 
 fn get_last_modified(path: &Path) -> i64 {
     if let Ok(metadata) = fs::metadata(path) {

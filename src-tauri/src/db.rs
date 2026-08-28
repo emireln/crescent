@@ -293,10 +293,6 @@ pub fn init_db() -> Result<DbState, String> {
     })
 }
 
-// -------------------------------------------------------------
-// Database Operations
-// -------------------------------------------------------------
-
 pub fn fetch_all_projects(conn: &Connection) -> Result<Vec<Project>, String> {
     let mut stmt = conn
         .prepare(
@@ -702,10 +698,6 @@ pub fn update_project_path(conn: &Connection, id: &str, new_path: &str) -> Resul
         .ok_or_else(|| "Project not found after relocation".to_string())
 }
 
-// -------------------------------------------------------------
-// Tags
-// -------------------------------------------------------------
-
 pub fn fetch_all_tags(conn: &Connection) -> Result<Vec<Tag>, String> {
     let mut stmt = conn
         .prepare("SELECT id, name, color FROM tags ORDER BY name ASC")
@@ -776,10 +768,6 @@ fn fetch_project_tags(conn: &Connection, project_id: &str) -> Result<Vec<Tag>, S
     }
     Ok(tags)
 }
-
-// -------------------------------------------------------------
-// Scripts & Ports
-// -------------------------------------------------------------
 
 fn fetch_project_scripts(conn: &Connection, project_id: &str) -> Result<Vec<ProjectScript>, String> {
     let mut stmt = conn
@@ -881,10 +869,6 @@ pub fn delete_port_record(conn: &Connection, id: &str) -> Result<(), String> {
     Ok(())
 }
 
-// -------------------------------------------------------------
-// Settings
-// -------------------------------------------------------------
-
 pub fn fetch_all_settings(conn: &Connection) -> Result<HashMap<String, String>, String> {
     let mut stmt = conn
         .prepare("SELECT key, value FROM settings")
@@ -911,10 +895,6 @@ pub fn save_setting_record(conn: &Connection, key: &str, value: &str) -> Result<
     Ok(())
 }
 
-// -------------------------------------------------------------
-// Backup & Export / Import
-// -------------------------------------------------------------
-
 #[derive(Serialize, Deserialize)]
 pub struct FullExportData {
     pub version: String,
@@ -939,10 +919,6 @@ pub fn export_all_data(conn: &Connection) -> Result<String, String> {
 
     serde_json::to_string_pretty(&export).map_err(|e| e.to_string())
 }
-
-// -------------------------------------------------------------
-// Workspaces
-// -------------------------------------------------------------
 
 pub fn fetch_all_workspaces(conn: &Connection) -> Result<Vec<Workspace>, String> {
     let mut stmt = conn
@@ -1071,10 +1047,6 @@ pub fn delete_workspace_record(conn: &Connection, id: &str) -> Result<(), String
         .map_err(|e| format!("Falha ao excluir workspace: {}", e))?;
     Ok(())
 }
-
-// -------------------------------------------------------------
-// AI Conversations & Messages
-// -------------------------------------------------------------
 
 pub fn fetch_all_ai_conversations(
     conn: &Connection,

@@ -338,9 +338,6 @@ export const api = {
     return JSON.stringify({ version: '1.0.0', mock: true });
   },
 
-  // -------------------------------------------------------------
-  // AI Assistant & Multi-LLM Gateway
-  // -------------------------------------------------------------
   getAiConversations: async (projectId?: string | null): Promise<AiConversation[]> => {
     if (isTauri) return await invoke('get_ai_conversations', { projectId: projectId || null });
     return getMockAiConversations(projectId);
