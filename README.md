@@ -8,6 +8,14 @@ O **Crescent** é um aplicativo desktop nativo para Windows projetado para desen
 
 ---
 
+## Origem do Projeto & Desenvolvimento
+
+A ideia do Crescent nasceu da minha própria necessidade e dificuldade de administrar dezenas de projetos de código espalhados pelo computador. Eu utilizei este projeto para criar a solução definitiva para o meu fluxo de trabalho diário e para **testar e ampliar os meus conhecimentos práticos** em Rust, Tauri v2, SQLite local de alto desempenho e arquitetura desktop nativa.
+
+O desenvolvimento do aplicativo contou com o auxílio de um **Agente de IA (modelo: 0x Alpha)** em regime de pair programming técnico e automação de código.
+
+---
+
 ## Funcionalidades
 
 - **Descoberta & Varredura Automática:** Detecção recursiva de repositórios e projetos (Rust, Node/TypeScript, React, Next, Vue, Python, FastAPI, Go, .NET, Java, PHP, Flutter, Docker).

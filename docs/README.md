@@ -19,7 +19,15 @@ Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigat�
 
 ---
 
-## 1. Visão Geral e Minha Motivação
+## 1. Visão Geral, Motivação e Desenvolvimento
+
+### Origem da Ideia
+A ideia e o início do Crescent vieram de outros projetos e da dificuldade real que eu sempre tive de administrar a quantidade massiva de projetos e repositórios espalhados pelo meu computador. Encontrar repositórios rapidamente, checar branches pendentes, lembrar comandos de setup e abrir portas locais consumia tempo e quebrava o fluxo de foco.
+
+Eu usei este projeto tanto para criar a ferramenta dos meus sonhos quanto para **ampliar, testar e consolidar os meus conhecimentos técnicos** em desenvolvimento desktop nativo com Rust, Tauri v2, SQLite local de alta performance, RAG e engenharia de software moderna.
+
+### Desenvolvimento com Auxílio de IA (0x Alpha)
+Este aplicativo foi desenvolvido em parceria técnica com auxílio de um **Agente de IA (modelo: 0x Alpha)**, combinando minha visão de produto, arquitetura de sistemas e design system monocromático estrito com a velocidade de implementação e automação do agente para refatorações, scripts de compilação e integração com o ecossistema local.
 
 Eu precisava de um painel de controle central para o meu ambiente de desenvolvimento no Windows que me permitisse:
 1. **Encontrar qualquer projeto em 1 segundo** através de uma paleta de comandos rápida (`Ctrl + K`).
