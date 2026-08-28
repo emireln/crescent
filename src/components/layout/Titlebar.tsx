@@ -18,7 +18,6 @@ import { Tooltip } from '../common/Tooltip';
 
 export const Titlebar: React.FC = () => {
   const {
-    projects,
     setIsCommandPaletteOpen,
     setIsNewProjectOpen,
     setIsScannerOpen,
@@ -66,24 +65,16 @@ export const Titlebar: React.FC = () => {
   return (
     <header
       data-tauri-drag-region
-      className="relative z-50 h-11 w-full bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between px-3.5 shrink-0 select-none"
+      className="relative z-50 h-11 w-full bg-zinc-950 flex items-center justify-between px-3.5 shrink-0 select-none"
     >
-      {/* Left: Brand / Logo */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5 text-zinc-100 font-semibold tracking-tight text-sm">
-          <img
-            src="/crescent-logo.png"
-            alt="Crescent Logo"
-            className="w-5 h-5 object-contain shrink-0 rounded"
-          />
-          <span className="font-semibold text-zinc-100">Crescent</span>
-        </div>
-
-        <span className="text-zinc-800 text-xs">/</span>
-
-        <span className="text-xs text-zinc-400 font-mono">
-          {projects.length} {projects.length === 1 ? 'projeto' : 'projetos'}
-        </span>
+      {/* Left: Brand / Logo only */}
+      <div className="flex items-center gap-2.5">
+        <img
+          src="/crescent-logo.png"
+          alt="Crescent Logo"
+          className="w-5 h-5 object-contain shrink-0 rounded"
+        />
+        <span className="font-semibold text-zinc-100 text-sm tracking-tight">Crescent</span>
       </div>
 
       {/* Center: Search & Quick Actions */}
@@ -93,13 +84,13 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="group flex items-center justify-between gap-6 px-3 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 transition-colors w-60 sm:w-72 lg:w-80 cursor-pointer"
+            className="group flex items-center justify-between gap-6 px-3 h-8 bg-zinc-900 hover:bg-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 transition-colors w-60 sm:w-72 lg:w-80 cursor-pointer"
           >
             <div className="flex items-center gap-2 min-w-0">
               <IconSearch size={14} className="text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0" />
               <span className="truncate text-xs">Buscar projetos, tags...</span>
             </div>
-            <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[10px] text-zinc-300 font-mono shrink-0">
+            <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-[10px] text-zinc-300 font-mono shrink-0">
               Ctrl K
             </kbd>
           </button>
@@ -110,7 +101,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsNewProjectOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
             <IconPlus size={14} className="text-zinc-400" />
             <span className="hidden sm:inline">Novo</span>
@@ -121,7 +112,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsScannerOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
             <IconScan size={14} className="text-zinc-400" />
             <span className="hidden sm:inline">Escanear</span>
@@ -132,7 +123,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsAiChatOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-200 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
             <IconBrain size={14} className="text-zinc-300" />
             <span className="hidden sm:inline">IA</span>
@@ -148,7 +139,7 @@ export const Titlebar: React.FC = () => {
             <button
               type="button"
               onClick={() => api.openUrl('https://emirln.com')}
-              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
             >
               <IconWorld size={15} />
             </button>
@@ -158,7 +149,7 @@ export const Titlebar: React.FC = () => {
             <button
               type="button"
               onClick={() => api.openUrl('https://buymeacoffee.com/emireln')}
-              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
             >
               <IconCoffee size={15} />
             </button>
@@ -168,7 +159,7 @@ export const Titlebar: React.FC = () => {
             <button
               type="button"
               onClick={() => api.openUrl('https://github.com/emireln')}
-              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
             >
               <IconBrandGithub size={15} />
             </button>
@@ -180,7 +171,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={handleMinimize}
-            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors cursor-pointer"
             title="Minimizar"
           >
             <IconMinus size={14} />
@@ -189,7 +180,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={handleToggleMaximize}
-            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors cursor-pointer"
             title={isMaximized ? 'Restaurar' : 'Maximizar'}
           >
             {isMaximized ? <IconCopy size={13} /> : <IconSquare size={13} />}
@@ -198,7 +189,7 @@ export const Titlebar: React.FC = () => {
           <button
             type="button"
             onClick={handleClose}
-            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors"
+            className="w-11 h-11 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer"
             title="Fechar"
           >
             <IconX size={14} />

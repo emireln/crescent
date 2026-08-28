@@ -60,12 +60,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
     <div
       onClick={() => setActiveProject(project)}
-      className={`group relative flex flex-col justify-between bg-zinc-900/90 hover:bg-zinc-900 border rounded-lg p-3.5 transition-all cursor-pointer ${
+      className={`group relative flex flex-col justify-between bg-zinc-900 hover:bg-zinc-850/80 rounded-xl p-3.5 transition-colors cursor-pointer ${
         !project.exists_on_disk
-          ? 'border-zinc-700'
+          ? 'bg-zinc-950/80'
           : project.is_pinned
-          ? 'border-zinc-700 bg-zinc-900'
-          : 'border-zinc-800/80 hover:border-zinc-700'
+          ? 'bg-zinc-900'
+          : ''
       }`}
     >
       <div>
@@ -77,27 +77,27 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               <button
                 type="button"
                 onClick={() => togglePinned(project.id)}
-                className={`p-1 rounded transition-colors ${
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
                   project.is_pinned
                     ? 'text-zinc-100'
-                    : 'text-zinc-400 hover:text-zinc-300'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
                 }`}
                 title={project.is_pinned ? 'Desafixar' : 'Fixar no topo'}
               >
-                {project.is_pinned ? <IconPinFilled size={13} /> : <IconPin size={13} />}
+                {project.is_pinned ? <IconPinFilled size={14} /> : <IconPin size={14} />}
               </button>
 
               <button
                 type="button"
                 onClick={() => toggleFavorite(project.id)}
-                className={`p-1 rounded transition-colors ${
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
                   project.is_favorite
                     ? 'text-zinc-100'
-                    : 'text-zinc-400 hover:text-zinc-300'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
                 }`}
                 title={project.is_favorite ? 'Remover dos favoritos' : 'Favoritar'}
               >
-                {project.is_favorite ? <IconStarFilled size={13} /> : <IconStar size={13} />}
+                {project.is_favorite ? <IconStarFilled size={14} /> : <IconStar size={14} />}
               </button>
             </div>
 
@@ -108,7 +108,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
             {/* Primary Tech */}
             <span
-              className={`text-[10px] font-mono px-1.5 py-0.2 rounded border shrink-0 ${getTechColor(
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-md shrink-0 ${getTechColor(
                 project.primary_tech
               )}`}
             >
@@ -118,7 +118,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
           {/* Status Badge */}
           <span
-            className={`text-[10px] font-medium px-2 py-0.5 rounded border shrink-0 ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
+            className={`text-[10px] font-medium px-2 py-0.5 rounded-md shrink-0 ${statusBadge.bg} ${statusBadge.text}`}
           >
             {statusBadge.label}
           </span>
@@ -127,7 +127,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         {/* Missing Folder Warning */}
         {!project.exists_on_disk && (
           <div
-            className="mb-2.5 p-2 bg-zinc-950 border border-zinc-800 rounded text-xs flex items-center justify-between gap-2"
+            className="mb-2.5 p-2 bg-zinc-950 rounded-lg text-xs flex items-center justify-between gap-2"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center gap-1.5 text-zinc-300 text-[11px] truncate">
@@ -138,14 +138,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               <button
                 type="button"
                 onClick={handleRelocate}
-                className="px-2 py-0.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-[11px] font-medium transition-colors"
+                className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-md text-[11px] font-medium transition-colors cursor-pointer"
               >
                 Localizar
               </button>
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-1 text-zinc-400 hover:text-zinc-200"
+                className="p-1 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Remover"
               >
                 <IconTrash size={12} />
@@ -173,10 +173,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         <div className="flex items-center gap-1.5 flex-wrap mb-2 text-xs">
           {project.git_branch && (
             <div
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono ${
                 project.git_dirty
-                  ? 'bg-zinc-800 text-zinc-200 border border-zinc-700'
-                  : 'bg-zinc-950 text-zinc-400 border border-zinc-850'
+                  ? 'bg-zinc-800 text-zinc-200'
+                  : 'bg-zinc-950 text-zinc-400'
               }`}
               title={
                 project.git_dirty
@@ -193,8 +193,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           )}
 
           {project.ports.length > 0 && (
-            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border ${
-              hasActivePort ? 'border-zinc-700 bg-zinc-800 text-zinc-100' : 'border-zinc-850 bg-zinc-950 text-zinc-400'
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono ${
+              hasActivePort ? 'bg-zinc-800 text-zinc-100' : 'bg-zinc-950 text-zinc-400'
             }`}>
               <IconWorld size={11} />
               <span>:{project.ports.map(p => p.port).join(', ')}</span>
@@ -205,7 +205,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           )}
 
           {project.notes && (
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-zinc-850 bg-zinc-950 text-zinc-400 text-[10px]" title="Contém anotações">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-400 text-[10px]" title="Contém anotações">
               <IconNotes size={11} />
               <span>Notas</span>
             </div>
@@ -214,7 +214,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           {project.tags.map(tag => (
             <span
               key={tag.id}
-              className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-950 border border-zinc-850 text-zinc-400"
+              className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-400"
             >
               #{tag.name}
             </span>
@@ -223,7 +223,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
 
       {/* Footer: Metadata & Quick Actions */}
-      <div className="pt-2 border-t border-zinc-850/60 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+      <div className="pt-2 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
         <div className="flex items-center gap-2.5 text-zinc-400">
           <span className="flex items-center gap-1" title="Última modificação">
             <IconClock size={12} />
@@ -244,30 +244,30 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             type="button"
             onClick={() => openInEditor(project)}
             disabled={!project.exists_on_disk}
-            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded-md transition-colors cursor-pointer"
             title={`Abrir no ${settings.default_editor}`}
           >
-            <EditorIcon editor={settings.default_editor} size={13} />
+            <EditorIcon editor={settings.default_editor} size={14} />
           </button>
 
           <button
             type="button"
             onClick={() => openInTerminal(project)}
             disabled={!project.exists_on_disk}
-            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded-md transition-colors cursor-pointer"
             title="Abrir no Terminal"
           >
-            <IconTerminal2 size={13} />
+            <IconTerminal2 size={14} />
           </button>
 
           <button
             type="button"
             onClick={() => openInExplorer(project)}
             disabled={!project.exists_on_disk}
-            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded-md transition-colors cursor-pointer"
             title="Explorador de Arquivos"
           >
-            <IconFolder size={13} />
+            <IconFolder size={14} />
           </button>
         </div>
       </div>

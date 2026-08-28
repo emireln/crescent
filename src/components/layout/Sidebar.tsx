@@ -92,12 +92,12 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`h-[calc(100vh-2.75rem)] bg-zinc-950 border-r border-zinc-850 flex flex-col justify-between select-none shrink-0 transition-all duration-150 ${
+      className={`h-[calc(100vh-2.75rem)] bg-zinc-950 flex flex-col justify-between select-none shrink-0 transition-all duration-150 ${
         isCollapsed ? 'w-14' : 'w-60'
       }`}
     >
       {/* Top Header & Actions */}
-      <div className="p-2.5 flex items-center justify-between border-b border-zinc-900">
+      <div className="p-2.5 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-1.5 flex-1 pr-1">
             <button
@@ -113,7 +113,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsScannerOpen(true)}
-                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 border border-zinc-800 hover:border-zinc-700 rounded-md transition-colors cursor-pointer"
+                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-md transition-colors cursor-pointer"
               >
                 <IconScan size={15} />
               </button>
@@ -196,7 +196,7 @@ export const Sidebar: React.FC = () => {
                     setSelectedTagId(null);
                     setSelectedWorkspaceId(null);
                   }}
-                  className={`w-full flex items-center justify-center p-2 rounded-md text-xs transition-colors ${
+                  className={`w-full flex items-center justify-center p-2 rounded-md text-xs transition-colors cursor-pointer ${
                     selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
                       ? 'bg-zinc-850 text-zinc-100 font-medium'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
@@ -245,7 +245,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAiChatOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors"
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
               >
                 <IconBrain size={16} className="text-zinc-200" />
               </button>
@@ -260,7 +260,7 @@ export const Sidebar: React.FC = () => {
                 <IconBrain size={16} className="text-zinc-200" />
                 <span>Crescent AI</span>
               </div>
-              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.2 rounded border border-zinc-800">
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.2 rounded">
                 Ctrl J
               </kbd>
             </button>
@@ -272,7 +272,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsCodeSearchOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
               >
                 <IconCode size={16} className="text-zinc-400" />
               </button>
@@ -287,7 +287,7 @@ export const Sidebar: React.FC = () => {
                 <IconCode size={16} className="text-zinc-400" />
                 <span>Busca de Código</span>
               </div>
-              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1 py-0.2 rounded border border-zinc-800">
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1 py-0.2 rounded">
                 Ctrl+Shift+F
               </kbd>
             </button>
@@ -299,7 +299,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsDiskCleanerOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
               >
                 <IconDatabase size={16} className="text-zinc-400" />
               </button>
@@ -329,7 +329,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsWorkspaceModalOpen(true)}
-                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Gerenciar Workspaces"
               >
                 <IconPlus size={14} />
@@ -388,7 +388,7 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAddingTag(prev => !prev)}
-                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Criar Tag"
               >
                 <IconPlus size={14} />
@@ -396,26 +396,26 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {isAddingTag && (
-              <form onSubmit={handleCreateTag} className="p-2 mb-1 bg-zinc-900 border border-zinc-800 rounded-md space-y-2">
+              <form onSubmit={handleCreateTag} className="p-2 mb-1 bg-zinc-900 rounded-md space-y-2">
                 <input
                   type="text"
                   value={newTagName}
                   onChange={e => setNewTagName(e.target.value)}
                   placeholder="Nome da tag..."
                   autoFocus
-                  className="w-full px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-zinc-700"
+                  className="w-full px-2 py-1 bg-zinc-950 rounded text-xs text-zinc-200 placeholder-zinc-400 focus:outline-none"
                 />
                 <div className="flex items-center justify-end gap-1">
                   <button
                     type="button"
                     onClick={() => setIsAddingTag(false)}
-                    className="px-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-200"
+                    className="px-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-200 cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium"
+                    className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium cursor-pointer"
                   >
                     Salvar
                   </button>
@@ -450,7 +450,7 @@ export const Sidebar: React.FC = () => {
                             setSelectedWorkspaceId(null);
                           }
                         }}
-                        className="flex items-center gap-2 flex-1 text-left truncate"
+                        className="flex items-center gap-2 flex-1 text-left truncate cursor-pointer"
                         title={`Filtrar pela tag #${tag.name}`}
                       >
                         <span className="text-zinc-400 font-mono">#</span>
@@ -462,7 +462,7 @@ export const Sidebar: React.FC = () => {
                           e.stopPropagation();
                           deleteTag(tag.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-200 p-0.5"
+                        className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
                         title="Excluir Tag"
                       >
                         <IconTrash size={12} />
@@ -477,7 +477,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Bottom Footer */}
-      <div className={`p-2 border-t border-zinc-900 bg-zinc-950 flex items-center justify-between text-xs text-zinc-400 ${
+      <div className={`p-2 bg-zinc-950 flex items-center justify-between text-xs text-zinc-400 ${
         isCollapsed ? 'flex-col gap-2' : ''
       }`}>
         {!isCollapsed ? (

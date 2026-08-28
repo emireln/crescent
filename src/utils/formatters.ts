@@ -40,19 +40,19 @@ export function formatRelativeTime(timestampSecs: number): string {
 export function getStatusBadge(status: string): { label: string; bg: string; text: string; border: string } {
   switch (status) {
     case 'active':
-      return { label: 'Ativo', bg: 'bg-zinc-800', text: 'text-zinc-100', border: 'border-zinc-600' };
+      return { label: 'Ativo', bg: 'bg-zinc-800', text: 'text-zinc-100', border: '' };
     case 'on_hold':
-      return { label: 'Em Espera', bg: 'bg-zinc-900', text: 'text-zinc-300', border: 'border-zinc-700' };
+      return { label: 'Em Espera', bg: 'bg-zinc-900', text: 'text-zinc-400', border: '' };
     case 'completed':
-      return { label: 'Concluído', bg: 'bg-zinc-850', text: 'text-zinc-200', border: 'border-zinc-700' };
+      return { label: 'Concluído', bg: 'bg-zinc-850', text: 'text-zinc-300', border: '' };
     case 'archived':
-      return { label: 'Arquivado', bg: 'bg-zinc-950', text: 'text-zinc-500', border: 'border-zinc-800' };
+      return { label: 'Arquivado', bg: 'bg-zinc-950', text: 'text-zinc-500', border: '' };
     default:
-      return { label: 'Ativo', bg: 'bg-zinc-800', text: 'text-zinc-100', border: 'border-zinc-600' };
+      return { label: 'Ativo', bg: 'bg-zinc-800', text: 'text-zinc-100', border: '' };
   }
 }
 
 export function getTechColor(_tech: string): string {
-  // Strictly monochromatic: solid dark background with sharp border and crisp zinc text
-  return 'border-zinc-700 bg-zinc-850 text-zinc-200';
+  // Strictly monochromatic: solid dark flat background with crisp zinc text
+  return 'bg-zinc-800 text-zinc-200';
 }

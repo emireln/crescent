@@ -14,6 +14,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { DiscoveredProject } from '../../types';
 import { api } from '../../services/api';
 import { formatBytes, formatRelativeTime, getTechColor } from '../../utils/formatters';
+import { CustomSelect } from '../common/CustomSelect';
 
 export const ScannerModal: React.FC = () => {
   const { isScannerOpen, setIsScannerOpen, batchImportProjects, settings } = useProjects();
@@ -129,7 +130,7 @@ export const ScannerModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSelectRoot}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-xs border border-zinc-700 font-medium shrink-0"
+                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 rounded-md text-xs font-medium shrink-0 cursor-pointer transition-colors"
               >
                 <IconFolder size={14} />
                 <span>Escolher Pasta</span>
@@ -137,21 +138,21 @@ export const ScannerModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="w-28">
+          <div className="w-32">
             <label className="block text-[11px] font-medium text-zinc-400 mb-1">
               Profundidade
             </label>
-            <select
-              value={maxDepth}
-              onChange={e => setMaxDepth(parseInt(e.target.value, 10))}
-              className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 font-medium"
-            >
-              <option value={2}>2 níveis</option>
-              <option value={3}>3 níveis</option>
-              <option value={4}>4 níveis</option>
-              <option value={5}>5 níveis</option>
-              <option value={6}>6 níveis</option>
-            </select>
+            <CustomSelect
+              value={String(maxDepth)}
+              onChange={v => setMaxDepth(parseInt(v, 10))}
+              options={[
+                { value: '2', label: '2 níveis' },
+                { value: '3', label: '3 níveis' },
+                { value: '4', label: '4 níveis' },
+                { value: '5', label: '5 níveis' },
+                { value: '6', label: '6 níveis' },
+              ]}
+            />
           </div>
 
           <div className="pt-5">
@@ -159,7 +160,7 @@ export const ScannerModal: React.FC = () => {
               type="button"
               onClick={handleStartScan}
               disabled={isScanning || !rootPath.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-white disabled:opacity-40 text-zinc-950 rounded text-xs font-semibold transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
             >
               {isScanning ? (
                 <>

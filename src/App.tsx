@@ -5,6 +5,8 @@ import {
   IconX,
   IconLoader2,
   IconBriefcase,
+  IconFilter,
+  IconSortDescending,
 } from '@tabler/icons-react';
 import { ProjectProvider, useProjects } from './context/ProjectContext';
 import { Titlebar } from './components/layout/Titlebar';
@@ -20,6 +22,8 @@ import { DiskCleanerModal } from './components/cleaner/DiskCleanerModal';
 import { WorkspaceModal } from './components/workspaces/WorkspaceModal';
 import { CodeSearchModal } from './components/code-search/CodeSearchModal';
 import { AiChatModal } from './components/ai/AiChatModal';
+import { CustomSelect, SelectOption } from './components/common/CustomSelect';
+import { Tooltip } from './components/common/Tooltip';
 import { SortOption } from './types';
 
 const Dashboard: React.FC = () => {
@@ -71,27 +75,41 @@ const Dashboard: React.FC = () => {
   const activeTag = tags.find(t => t.id === selectedTagId);
   const activeWorkspace = workspaces.find(w => w.id === selectedWorkspaceId);
 
+  // Stack options for CustomSelect
+  const stackOptions: SelectOption[] = [
+    { value: '', label: 'Todas as Stacks' },
+    ...availableTechs.map(t => ({ value: t, label: t })),
+  ];
+
+  // Sort options for CustomSelect
+  const sortOptions: SelectOption[] = [
+    { value: 'last_modified', label: 'Recentes' },
+    { value: 'name', label: 'Nome (A-Z)' },
+    { value: 'size', label: 'Tamanho (Maior)' },
+    { value: 'status', label: 'Status' },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-2.5rem)] overflow-hidden bg-zinc-950">
+    <div className="flex-1 flex flex-col h-[calc(100vh-2.75rem)] overflow-hidden bg-zinc-950">
       {/* Top Filter and Controls Toolbar */}
-      <div className="h-11 border-b border-zinc-900 px-5 flex items-center justify-between shrink-0 bg-zinc-950 select-none">
+      <div className="h-11 px-4 flex items-center justify-between shrink-0 bg-zinc-950 select-none">
         {/* Left: Section Title & Active Tag / Workspace Filter Badge */}
         <div className="flex items-center gap-2.5">
           <h1 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
             <span>{getCategoryTitle()}</span>
-            <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-zinc-850 text-zinc-300 font-mono font-normal">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-300 font-mono font-normal">
               {filteredProjects.length}
             </span>
           </h1>
 
           {activeWorkspace && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-900 text-[11px] text-zinc-300">
               <IconBriefcase size={12} className="text-zinc-400" />
               <span>{activeWorkspace.name}</span>
               <button
                 type="button"
                 onClick={() => setSelectedWorkspaceId(null)}
-                className="text-zinc-400 hover:text-white ml-0.5"
+                className="text-zinc-400 hover:text-white ml-0.5 cursor-pointer"
                 title="Remover filtro"
               >
                 <IconX size={11} />
@@ -100,13 +118,13 @@ const Dashboard: React.FC = () => {
           )}
 
           {activeTag && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-900 text-[11px] text-zinc-300">
               <span className="text-zinc-400 font-mono">#</span>
               <span>{activeTag.name}</span>
               <button
                 type="button"
                 onClick={() => setSelectedTagId(null)}
-                className="text-zinc-400 hover:text-white ml-0.5"
+                className="text-zinc-400 hover:text-white ml-0.5 cursor-pointer"
                 title="Remover filtro de tag"
               >
                 <IconX size={11} />
@@ -115,66 +133,53 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Right: Tech Filter, Sorting & View Mode Switcher */}
+        {/* Right: Custom Dropdowns for Stacks, Sorting & View Mode Switcher */}
         <div className="flex items-center gap-2">
           {/* Tech Filter Dropdown */}
-          <div className="flex items-center gap-1">
-            <select
-              value={selectedTech || ''}
-              onChange={e => setSelectedTech(e.target.value || null)}
-              className="px-2 py-1 bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-850 hover:border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer"
-            >
-              <option value="">Todas as Stacks</option>
-              {availableTechs.map(tech => (
-                <option key={tech} value={tech}>
-                  {tech}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={selectedTech || ''}
+            onChange={v => setSelectedTech(v || null)}
+            options={stackOptions}
+            icon={<IconFilter size={13} />}
+          />
 
           {/* Sort Selector */}
-          <div className="flex items-center gap-1">
-            <select
-              value={sortOption}
-              onChange={e => setSortOption(e.target.value as SortOption)}
-              className="px-2 py-1 bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-850 hover:border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer"
-            >
-              <option value="last_modified">Recentes</option>
-              <option value="name">Nome (A-Z)</option>
-              <option value="size">Tamanho</option>
-              <option value="status">Status</option>
-            </select>
-          </div>
-
-          <div className="h-3.5 w-px bg-zinc-850 mx-0.5" />
+          <CustomSelect
+            value={sortOption}
+            onChange={v => setSortOption(v as SortOption)}
+            options={sortOptions}
+            icon={<IconSortDescending size={13} />}
+          />
 
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-zinc-900 border border-zinc-850 rounded p-0.5">
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`p-1 rounded transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-zinc-800 text-zinc-100'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-              title="Grade"
-            >
-              <IconLayoutGrid size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`p-1 rounded transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-zinc-800 text-zinc-100'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-              title="Lista"
-            >
-              <IconList size={14} />
-            </button>
+          <div className="flex items-center bg-zinc-900 rounded-lg p-0.5">
+            <Tooltip content="Visualização em Grade" position="bottom">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                  viewMode === 'grid'
+                    ? 'bg-zinc-800 text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <IconLayoutGrid size={14} />
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Visualização em Lista" position="bottom">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                  viewMode === 'list'
+                    ? 'bg-zinc-800 text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <IconList size={14} />
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

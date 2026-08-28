@@ -18,6 +18,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
 import { ProviderIcon } from '../ai/ProviderIcons';
 import { EditorIcon } from '../common/EditorIcons';
+import { CustomSelect } from '../common/CustomSelect';
 
 export const SettingsModal: React.FC = () => {
   const { isSettingsOpen, setIsSettingsOpen, settings, saveSetting } = useProjects();
@@ -322,10 +323,10 @@ export const SettingsModal: React.FC = () => {
                   key={opt.id}
                   type="button"
                   onClick={() => setEditor(opt.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-xs text-left border transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs text-left transition-colors cursor-pointer ${
                     editor === opt.id
-                      ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-semibold shadow-sm'
-                      : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+                      ? 'bg-zinc-800 text-zinc-100 font-medium'
+                      : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                   }`}
                 >
                   <EditorIcon editor={opt.id} size={15} className={editor === opt.id ? 'text-zinc-100' : 'text-zinc-400'} />
@@ -344,14 +345,14 @@ export const SettingsModal: React.FC = () => {
                   value={customEditorPath}
                   onChange={e => setCustomEditorPath(e.target.value)}
                   placeholder="C:\Program Files\MeuEditor\editor.exe"
-                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-1.5 bg-zinc-950 rounded text-xs text-zinc-200 font-mono focus:outline-none"
                 />
               </div>
             )}
           </div>
 
           {/* Terminal Settings */}
-          <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded space-y-3">
+          <div className="p-3.5 bg-zinc-900 rounded-lg space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
               <IconTerminal2 size={16} className="text-zinc-400" />
               <span>Terminal Padrão</span>
@@ -369,10 +370,10 @@ export const SettingsModal: React.FC = () => {
                   key={opt.id}
                   type="button"
                   onClick={() => setTerminal(opt.id)}
-                  className={`px-3 py-1.5 rounded text-xs text-left border transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-xs text-left transition-colors cursor-pointer ${
                     terminal === opt.id
-                      ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-semibold'
-                      : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                      ? 'bg-zinc-800 text-zinc-100 font-medium'
+                      : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                   }`}
                 >
                   {opt.label}
@@ -390,14 +391,14 @@ export const SettingsModal: React.FC = () => {
                   value={customTerminalPath}
                   onChange={e => setCustomTerminalPath(e.target.value)}
                   placeholder="C:\Program Files\MeuTerminal\terminal.exe"
-                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-1.5 bg-zinc-950 rounded text-xs text-zinc-200 font-mono focus:outline-none"
                 />
               </div>
             )}
           </div>
 
           {/* Scanner Defaults */}
-          <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded space-y-3">
+          <div className="p-3.5 bg-zinc-900 rounded-lg space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
               <IconScan size={16} className="text-zinc-400" />
               <span>Opções Padrão de Varredura</span>
@@ -408,17 +409,18 @@ export const SettingsModal: React.FC = () => {
                 <label className="block text-[11px] text-zinc-400 mb-1">
                   Profundidade Padrão de Pastas
                 </label>
-                <select
+                <CustomSelect
                   value={scanDepth}
-                  onChange={e => setScanDepth(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                >
-                  <option value="2">2 níveis</option>
-                  <option value="3">3 níveis</option>
-                  <option value="4">4 níveis (recomendado)</option>
-                  <option value="5">5 níveis</option>
-                  <option value="6">6 níveis</option>
-                </select>
+                  onChange={v => setScanDepth(v)}
+                  options={[
+                    { value: '2', label: '2 níveis' },
+                    { value: '3', label: '3 níveis' },
+                    { value: '4', label: '4 níveis (recomendado)' },
+                    { value: '5', label: '5 níveis' },
+                    { value: '6', label: '6 níveis' },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -429,14 +431,14 @@ export const SettingsModal: React.FC = () => {
                   type="text"
                   value={scanIgnore}
                   onChange={e => setScanIgnore(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-200 font-mono focus:outline-none focus:border-zinc-600"
+                  className="w-full px-3 py-1.5 bg-zinc-950 rounded text-xs text-zinc-200 font-mono focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Backup & Persistence */}
-          <div className="p-3.5 bg-zinc-900 border border-zinc-800 rounded space-y-3">
+          <div className="p-3.5 bg-zinc-900 rounded-lg space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
                 <IconDatabase size={16} className="text-zinc-400" />
@@ -445,7 +447,7 @@ export const SettingsModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleExportBackup}
-                className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 rounded-md text-xs font-medium transition-colors cursor-pointer"
               >
                 <IconDownload size={13} />
                 <span>Exportar Backup JSON</span>

@@ -18,6 +18,7 @@ import { api } from '../../services/api';
 import { AiConversation, AiMessage, AiModelInfo, AiProvider, PRESET_AI_MODELS } from '../../types';
 import { ProviderIcon } from './ProviderIcons';
 import { formatRelativeTime } from '../../utils/formatters';
+import { CustomSelect } from '../common/CustomSelect';
 
 export const AiChatModal: React.FC = () => {
   const {
@@ -264,7 +265,7 @@ export const AiChatModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleStartNewChat}
-                className="flex items-center gap-1 px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded text-[11px] border border-zinc-700 font-medium transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-750 text-zinc-100 rounded-md text-[11px] font-medium transition-colors cursor-pointer"
                 title="Nova conversa"
               >
                 <IconPlus size={13} />
@@ -273,22 +274,22 @@ export const AiChatModal: React.FC = () => {
             </div>
 
             {/* Scope Selector */}
-            <div className="p-2.5 border-b border-zinc-800 bg-zinc-950/40">
+            <div className="p-2.5 bg-zinc-950/40">
               <label className="block text-[10px] uppercase tracking-wider text-zinc-500 font-semibold mb-1.5">
                 Escopo de Contexto RAG
               </label>
-              <select
+              <CustomSelect
                 value={aiActiveProjectId || ''}
-                onChange={e => setAiActiveProjectId(e.target.value || null)}
-                className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 cursor-pointer"
-              >
-                <option value="">Todos os Projetos ({projects.length})</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.primary_tech})
-                  </option>
-                ))}
-              </select>
+                onChange={v => setAiActiveProjectId(v || null)}
+                options={[
+                  { value: '', label: `Todos os Projetos (${projects.length})` },
+                  ...projects.map(p => ({
+                    value: p.id,
+                    label: `${p.name} (${p.primary_tech})`,
+                  })),
+                ]}
+                className="w-full"
+              />
             </div>
 
             {/* Conversation List */}
@@ -308,10 +309,10 @@ export const AiChatModal: React.FC = () => {
                     <div
                       key={conv.id}
                       onClick={() => setActiveConversation(conv)}
-                      className={`group flex items-center justify-between px-2.5 py-2 rounded text-xs transition-colors cursor-pointer ${
+                      className={`group flex items-center justify-between px-2.5 py-2 rounded-md text-xs transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-zinc-800 text-zinc-100 border border-zinc-700 font-medium'
-                          : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 border border-transparent'
+                          ? 'bg-zinc-800 text-zinc-100 font-medium'
+                          : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -322,7 +323,7 @@ export const AiChatModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={e => handleDeleteConversation(e, conv.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-zinc-200 rounded transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-zinc-200 rounded cursor-pointer transition-opacity"
                         title="Excluir conversa"
                       >
                         <IconTrash size={13} />
@@ -335,29 +336,29 @@ export const AiChatModal: React.FC = () => {
           </div>
 
           {/* Sidebar Footer Info */}
-          <div className="p-3 border-t border-zinc-800 text-[11px] text-zinc-500 space-y-1">
+          <div className="p-3 text-[11px] text-zinc-500 space-y-1">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
               <span>Memória SQLite Ativa</span>
             </div>
-            <div>Atalho rápido: <kbd className="font-mono text-zinc-400 bg-zinc-850 px-1 py-0.5 rounded border border-zinc-800">Ctrl + J</kbd></div>
+            <div>Atalho rápido: <kbd className="font-mono text-zinc-400 bg-zinc-850 px-1 py-0.5 rounded">Ctrl + J</kbd></div>
           </div>
         </div>
 
         {/* Right Main Chat Container */}
         <div className="flex-1 flex flex-col bg-zinc-950 overflow-hidden">
           {/* Chat Header: Model Switcher & Status */}
-          <div className="p-3.5 border-b border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950">
+          <div className="p-3.5 flex items-center justify-between gap-3 bg-zinc-950">
             {/* Dynamic Model Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsModelDropdownOpen(prev => !prev)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-100 rounded-lg border border-zinc-800 hover:border-zinc-700 text-xs font-semibold transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 rounded-lg text-xs font-medium transition-colors cursor-pointer"
               >
                 <ProviderIcon provider={selectedProvider} size={15} />
                 <span>{currentModelInfo.name}</span>
-                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">
+                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">
                   {currentModelInfo.context_window}
                 </span>
                 <IconChevronDown size={14} className="text-zinc-500" />
@@ -365,7 +366,7 @@ export const AiChatModal: React.FC = () => {
 
               {/* Dropdown Menu */}
               {isModelDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl z-50 p-2 space-y-1 max-h-96 overflow-y-auto custom-scrollbar">
+                <div className="absolute left-0 mt-2 w-80 bg-zinc-900 rounded-lg shadow-2xl z-50 p-2 space-y-1 max-h-96 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-2 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
                     Trocar Modelo Instantaneamente
                   </div>

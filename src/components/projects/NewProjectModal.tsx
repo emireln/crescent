@@ -13,6 +13,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
 import { ProjectTemplate } from '../../types';
 import { getTechColor } from '../../utils/formatters';
+import { CustomSelect } from '../common/CustomSelect';
 
 type Mode = 'existing' | 'template';
 
@@ -238,7 +239,7 @@ export const NewProjectModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSelectFolder}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 rounded text-xs font-medium transition-colors shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 rounded-md text-xs font-medium transition-colors shrink-0 cursor-pointer"
                 >
                   <IconFolder size={14} />
                   <span>Selecionar Pasta</span>
@@ -285,16 +286,17 @@ export const NewProjectModal: React.FC = () => {
                 <label className="block text-xs font-medium text-zinc-300 mb-1">
                   Status Inicial
                 </label>
-                <select
+                <CustomSelect
                   value={status}
-                  onChange={e => setStatus(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                >
-                  <option value="active">Ativo</option>
-                  <option value="on_hold">Em Espera</option>
-                  <option value="completed">Concluído</option>
-                  <option value="archived">Arquivado</option>
-                </select>
+                  onChange={v => setStatus(v)}
+                  options={[
+                    { value: 'active', label: 'Ativo' },
+                    { value: 'on_hold', label: 'Em Espera' },
+                    { value: 'completed', label: 'Concluído' },
+                    { value: 'archived', label: 'Arquivado' },
+                  ]}
+                  className="w-full"
+                />
               </div>
             </div>
 

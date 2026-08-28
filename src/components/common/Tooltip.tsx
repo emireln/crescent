@@ -13,7 +13,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   content,
   shortcut,
   position = 'bottom',
-  delayMs = 200,
+  delayMs = 150,
   children,
   className = '',
 }) => {
@@ -35,10 +35,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-1.5',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-1.5',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-1.5',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-1.5',
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
   };
 
   return (
@@ -53,11 +53,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && content && (
         <div
           role="tooltip"
-          className={`absolute ${positionClasses[position]} z-[100] pointer-events-none flex items-center gap-1.5 px-2.5 py-1 bg-zinc-900 border border-zinc-750 text-zinc-100 text-[11px] font-medium rounded-md shadow-xl whitespace-nowrap animate-in fade-in duration-100`}
+          className={`absolute ${positionClasses[position]} z-[100] pointer-events-none flex items-center gap-1.5 px-2.5 py-1 bg-zinc-900 text-zinc-100 text-[11px] font-medium rounded-lg shadow-2xl whitespace-nowrap animate-in fade-in duration-100`}
         >
           <span>{content}</span>
           {shortcut && (
-            <kbd className="px-1 py-0.2 bg-zinc-800 border border-zinc-700 text-[10px] font-mono text-zinc-300 rounded">
+            <kbd className="px-1.5 py-0.2 bg-zinc-800 text-[10px] font-mono text-zinc-300 rounded">
               {shortcut}
             </kbd>
           )}

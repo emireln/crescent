@@ -37,6 +37,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
 import { api } from '../../services/api';
 import { EditorIcon } from '../common/EditorIcons';
+import { CustomSelect } from '../common/CustomSelect';
 
 type Tab = 'overview' | 'notes' | 'readme' | 'git' | 'env' | 'ports' | 'scripts' | 'ai';
 
@@ -295,7 +296,7 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInEditor(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded-md text-xs font-medium transition-colors cursor-pointer"
               title={`Abrir no editor (${settings.default_editor})`}
             >
               <EditorIcon editor={settings.default_editor} size={14} />
@@ -306,7 +307,7 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInTerminal(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded-md text-xs font-medium transition-colors cursor-pointer"
               title={`Abrir no terminal (${settings.default_terminal})`}
             >
               <IconTerminal2 size={14} />
@@ -317,7 +318,7 @@ export const ProjectDetailModal: React.FC = () => {
               type="button"
               onClick={() => openInExplorer(activeProject)}
               disabled={!activeProject.exists_on_disk}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded border border-zinc-800 hover:border-zinc-700 text-xs font-medium transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 text-zinc-200 rounded-md text-xs font-medium transition-colors cursor-pointer"
               title="Abrir no Explorer"
             >
               <IconFolder size={14} />
@@ -444,16 +445,17 @@ export const ProjectDetailModal: React.FC = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-zinc-300">Status do Projeto</label>
-                  <select
+                  <CustomSelect
                     value={status}
-                    onChange={e => setStatus(e.target.value as any)}
-                    className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-100 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                  >
-                    <option value="active">Ativo (Em desenvolvimento)</option>
-                    <option value="on_hold">Em Espera</option>
-                    <option value="completed">Concluído</option>
-                    <option value="archived">Arquivado</option>
-                  </select>
+                    onChange={v => setStatus(v as any)}
+                    options={[
+                      { value: 'active', label: 'Ativo (Em desenvolvimento)' },
+                      { value: 'on_hold', label: 'Em Espera' },
+                      { value: 'completed', label: 'Concluído' },
+                      { value: 'archived', label: 'Arquivado' },
+                    ]}
+                    className="w-full"
+                  />
                 </div>
 
                 <div className="space-y-1.5">
