@@ -87,19 +87,24 @@ export const AiChatModal: React.FC = () => {
       if (ollamaNames && ollamaNames.length > 0) {
         const dynamicOllamaModels: AiModelInfo[] = ollamaNames.map(name => ({
           id: name,
-          name: `${name} (Local)`,
+          name: `${name} (Instalado)`,
           provider: 'ollama',
           context_window: '32k - 128k',
-          description: 'Modelo local instalado no seu Ollama.',
+          description: 'Modelo local instalado e pronto para execução 100% offline.',
         }));
 
         setAvailableModels(prev => {
           const others = prev.filter(m => m.provider !== 'ollama');
           return [...dynamicOllamaModels, ...others];
         });
+
+        // Auto select first installed model if currently on ollama
+        if (selectedProvider === 'ollama' && !ollamaNames.includes(selectedModel)) {
+          setSelectedModel(ollamaNames[0]);
+        }
       }
     } catch (err) {
-      // Ollama might not be running, keep presets
+      // Ollama offline, keep preset models
     }
   };
 

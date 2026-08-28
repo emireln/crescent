@@ -239,13 +239,28 @@ export interface AiMessage {
 }
 
 export const PRESET_AI_MODELS: AiModelInfo[] = [
-  // Google Gemini
+  // Google Gemini (2026 Generation)
+  {
+    id: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
+    provider: 'gemini',
+    context_window: '1M tokens',
+    description: 'A mais recente geração ultrarrápida da Google (2026) com inteligência aprimorada para código.',
+  },
+  {
+    id: 'gemini-3.1-pro',
+    name: 'Gemini 3.1 Pro',
+    provider: 'gemini',
+    context_window: '2M tokens',
+    description: 'Raciocínio complexo e análise massiva de repositórios inteiros com janela de 2M tokens.',
+    is_reasoning: true,
+  },
   {
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
     provider: 'gemini',
     context_window: '2M tokens',
-    description: 'Modelo topo de linha do Google para raciocínio profundo e análise massiva de repositórios.',
+    description: 'Modelo comprovado para engenharia de software e raciocínio profundo.',
     is_reasoning: true,
   },
   {
@@ -253,44 +268,52 @@ export const PRESET_AI_MODELS: AiModelInfo[] = [
     name: 'Gemini 2.5 Flash',
     provider: 'gemini',
     context_window: '1M tokens',
-    description: 'Ultra-rápido, excelente custo-benefício e alta inteligência para programação diária.',
-  },
-  {
-    id: 'gemini-2.0-flash',
-    name: 'Gemini 2.0 Flash',
-    provider: 'gemini',
-    context_window: '1M tokens',
-    description: 'Velocidade extrema e respostas quase instantâneas.',
+    description: 'Alta velocidade e excelente custo-benefício para desenvolvimento contínuo.',
   },
 
-  // OpenAI
+  // OpenAI (GPT-5.6 Series & Reasoners)
+  {
+    id: 'gpt-5.6-sol',
+    name: 'GPT-5.6 Sol',
+    provider: 'openai',
+    context_window: '256k tokens',
+    description: 'Flagship de raciocínio profundo da série GPT-5.6 (2026) para programação avançada e arquitetura.',
+    is_reasoning: true,
+  },
+  {
+    id: 'gpt-5.6-terra',
+    name: 'GPT-5.6 Terra',
+    provider: 'openai',
+    context_window: '128k tokens',
+    description: 'Modelo equilibrado para engenharia de software rápida e refatoração precisa.',
+  },
+  {
+    id: 'gpt-5.6-luna',
+    name: 'GPT-5.6 Luna',
+    provider: 'openai',
+    context_window: '128k tokens',
+    description: 'Variante ultrarrápida e econômica para consultas diárias de código.',
+  },
   {
     id: 'gpt-4.5-preview',
     name: 'GPT-4.5 Preview',
     provider: 'openai',
     context_window: '128k tokens',
-    description: 'Novo carro-chefe da OpenAI com conhecimento avançado e intuição de software.',
+    description: 'Modelo avançado com intuição de software e precisão de sintaxe.',
   },
   {
     id: 'gpt-4o',
     name: 'GPT-4o',
     provider: 'openai',
     context_window: '128k tokens',
-    description: 'Modelo omni balanceado, de alta velocidade e raciocínio sólido.',
-  },
-  {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    provider: 'openai',
-    context_window: '128k tokens',
-    description: 'Econômico e ultrarrápido para tarefas rápidas de código.',
+    description: 'Modelo omni balanceado, veloz e estável.',
   },
   {
     id: 'o3-mini',
     name: 'o3-mini',
     provider: 'openai',
     context_window: '200k tokens',
-    description: 'Raciocínio lógico avançado para arquiteturas de software e depuração complexa.',
+    description: 'Raciocínio lógico e depuração profunda com baixo custo de tokens.',
     is_reasoning: true,
   },
   {
@@ -298,34 +321,40 @@ export const PRESET_AI_MODELS: AiModelInfo[] = [
     name: 'o1 (Reasoning)',
     provider: 'openai',
     context_window: '200k tokens',
-    description: 'Modelo de raciocínio profundo para refatoração e algoritmos difíceis.',
+    description: 'Raciocínio matemático e resolução de algoritmos complexos.',
     is_reasoning: true,
   },
 
-  // DeepSeek
+  // Anthropic Claude (Claude 5 Family & Claude 3.7)
   {
-    id: 'deepseek-chat',
-    name: 'DeepSeek-V3 (Chat)',
-    provider: 'deepseek',
-    context_window: '64k tokens',
-    description: 'Líder em custo-eficiência com inteligência equiparável aos melhores modelos globais.',
-  },
-  {
-    id: 'deepseek-reasoner',
-    name: 'DeepSeek-R1 (Reasoner)',
-    provider: 'deepseek',
-    context_window: '64k tokens',
-    description: 'Cadeia de pensamento aberta e raciocínio matemático/lógico de classe mundial.',
+    id: 'claude-5-opus',
+    name: 'Claude 5 Opus',
+    provider: 'claude',
+    context_window: '200k tokens',
+    description: 'O modelo de maior inteligência e capacidade de raciocínio da família Claude 5 (2026).',
     is_reasoning: true,
   },
-
-  // Anthropic Claude
+  {
+    id: 'claude-5-sonnet',
+    name: 'Claude 5 Sonnet',
+    provider: 'claude',
+    context_window: '200k tokens',
+    description: 'Padrão ouro para agentic coding, raciocínio e engenharia de sistemas.',
+    is_reasoning: true,
+  },
+  {
+    id: 'claude-5-fable',
+    name: 'Claude 5 Fable',
+    provider: 'claude',
+    context_window: '200k tokens',
+    description: 'Excelente para geração rápida, testes e documentação técnica.',
+  },
   {
     id: 'claude-3-7-sonnet-20250219',
     name: 'Claude 3.7 Sonnet',
     provider: 'claude',
     context_window: '200k tokens',
-    description: 'O modelo híbrido definitivo para engenharia de software e raciocínio programático.',
+    description: 'Modelo híbrido com pensamento transparente para engenharia de código.',
     is_reasoning: true,
   },
   {
@@ -333,37 +362,62 @@ export const PRESET_AI_MODELS: AiModelInfo[] = [
     name: 'Claude 3.5 Haiku',
     provider: 'claude',
     context_window: '200k tokens',
-    description: 'Respostas ultrarrápidas com excelente precisão de código.',
-  },
-  {
-    id: 'claude-3-opus-20240229',
-    name: 'Claude 3 Opus',
-    provider: 'claude',
-    context_window: '200k tokens',
-    description: 'Excelente para análises extensas de arquitetura e redação técnica.',
+    description: 'Respostas ultrarrápidas para tarefas curtas de código.',
   },
 
-  // Ollama (Local)
+  // DeepSeek (V4 & R1)
+  {
+    id: 'deepseek-v4-pro',
+    name: 'DeepSeek-V4 Pro',
+    provider: 'deepseek',
+    context_window: '128k tokens',
+    description: 'A mais recente geração DeepSeek-V4 (2026) para tarefas difíceis de software.',
+    is_reasoning: true,
+  },
+  {
+    id: 'deepseek-v4-flash',
+    name: 'DeepSeek-V4 Flash',
+    provider: 'deepseek',
+    context_window: '64k tokens',
+    description: 'Geração rápida, barata e altamente inteligente para o dia a dia.',
+  },
+  {
+    id: 'deepseek-reasoner',
+    name: 'DeepSeek-R1 (Reasoner)',
+    provider: 'deepseek',
+    context_window: '64k tokens',
+    description: 'Cadeia de pensamento aberta e raciocínio lógico de classe mundial.',
+    is_reasoning: true,
+  },
+  {
+    id: 'deepseek-chat',
+    name: 'DeepSeek-V3 (Chat)',
+    provider: 'deepseek',
+    context_window: '64k tokens',
+    description: 'Líder em custo-eficiência e precisão técnica.',
+  },
+
+  // Ollama (Modelos Locais)
+  {
+    id: 'qwen3-coder:latest',
+    name: 'Qwen3 Coder (Local)',
+    provider: 'ollama',
+    context_window: '64k tokens',
+    description: 'Geração 2026 de especialista em código open-weight rodando 100% offline.',
+  },
+  {
+    id: 'qwen2.5-coder:latest',
+    name: 'Qwen 2.5 Coder (Local)',
+    provider: 'ollama',
+    context_window: '32k tokens',
+    description: 'Especialista local em geração e depuração de código.',
+  },
   {
     id: 'llama3.3:70b',
     name: 'Llama 3.3 (70B)',
     provider: 'ollama',
     context_window: '128k tokens',
     description: 'Poderoso modelo open-weight da Meta rodando 100% offline no seu hardware.',
-  },
-  {
-    id: 'llama3.2:latest',
-    name: 'Llama 3.2',
-    provider: 'ollama',
-    context_window: '128k tokens',
-    description: 'Modelo local leve e veloz para execução local com baixo consumo de VRAM/RAM.',
-  },
-  {
-    id: 'qwen2.5-coder:latest',
-    name: 'Qwen 2.5 Coder',
-    provider: 'ollama',
-    context_window: '32k tokens',
-    description: 'Especialista local em geração, correção e documentação de código em dezenas de linguagens.',
   },
   {
     id: 'deepseek-r1:latest',
@@ -374,11 +428,11 @@ export const PRESET_AI_MODELS: AiModelInfo[] = [
     is_reasoning: true,
   },
   {
-    id: 'mistral:latest',
-    name: 'Mistral 7B',
+    id: 'llama3.2:latest',
+    name: 'Llama 3.2 (Local)',
     provider: 'ollama',
-    context_window: '32k tokens',
-    description: 'Modelo local compacto, clássico e rápido.',
+    context_window: '128k tokens',
+    description: 'Modelo local leve e veloz para execução local com baixo consumo de VRAM/RAM.',
   },
 ];
 
