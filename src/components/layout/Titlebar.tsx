@@ -7,6 +7,9 @@ import {
   IconSearch,
   IconFolderPlus,
   IconScan,
+  IconWorld,
+  IconCoffee,
+  IconBrandGithub,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
@@ -87,7 +90,7 @@ export const Titlebar: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="flex items-center justify-between gap-6 px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-400 hover:text-zinc-200 transition-colors w-72 h-7"
+          className="flex items-center justify-between gap-6 px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-400 hover:text-zinc-200 transition-colors w-64 lg:w-72 h-7"
         >
           <div className="flex items-center gap-2">
             <IconSearch size={13} className="text-zinc-500" />
@@ -119,34 +122,72 @@ export const Titlebar: React.FC = () => {
         </button>
       </div>
 
-      {/* Right: Window Controls */}
-      <div className="flex items-center h-full -mr-3" data-no-drag>
-        <button
-          type="button"
-          onClick={handleMinimize}
-          className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-          title="Minimizar"
-        >
-          <IconMinus size={14} />
-        </button>
+      {/* Right Area: Creator Portfolio & Links + Window Controls */}
+      <div className="flex items-center gap-2">
+        {/* Creator Portfolio & Support Links */}
+        <div className="flex items-center gap-1" data-no-drag>
+          <button
+            type="button"
+            onClick={() => api.openUrl('https://emirln.com')}
+            title="Website / Portfólio (emirln.com)"
+            className="flex items-center gap-1.5 px-2 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-300 hover:text-zinc-100 transition-colors"
+          >
+            <IconWorld size={13} className="text-zinc-400" />
+            <span className="font-mono text-[11px] hidden md:inline">emirln.com</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={handleToggleMaximize}
-          className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
-          title={isMaximized ? 'Restaurar' : 'Maximizar'}
-        >
-          {isMaximized ? <IconCopy size={13} /> : <IconSquare size={13} />}
-        </button>
+          <button
+            type="button"
+            onClick={() => api.openUrl('https://buymeacoffee.com/emireln')}
+            title="Apoiar o projeto (Buy Me a Coffee)"
+            className="flex items-center gap-1.5 px-2 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-300 hover:text-zinc-100 transition-colors"
+          >
+            <IconCoffee size={13} className="text-zinc-400" />
+            <span className="text-[11px] hidden xl:inline font-medium">Apoiar</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={handleClose}
-          className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors"
-          title="Fechar"
-        >
-          <IconX size={14} />
-        </button>
+          <button
+            type="button"
+            onClick={() => api.openUrl('https://github.com/emireln')}
+            title="GitHub (@emireln)"
+            className="flex items-center gap-1.5 px-2 h-7 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded text-xs text-zinc-300 hover:text-zinc-100 transition-colors"
+          >
+            <IconBrandGithub size={13} className="text-zinc-400" />
+            <span className="text-[11px] hidden xl:inline font-mono">GitHub</span>
+          </button>
+        </div>
+
+        <span className="text-zinc-800 text-xs hidden sm:inline">|</span>
+
+        {/* Window Controls */}
+        <div className="flex items-center h-full -mr-3" data-no-drag>
+          <button
+            type="button"
+            onClick={handleMinimize}
+            className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            title="Minimizar"
+          >
+            <IconMinus size={14} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleMaximize}
+            className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            title={isMaximized ? 'Restaurar' : 'Maximizar'}
+          >
+            {isMaximized ? <IconCopy size={13} /> : <IconSquare size={13} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleClose}
+            className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-950 hover:bg-zinc-200 transition-colors"
+            title="Fechar"
+          >
+            <IconX size={14} />
+          </button>
+        </div>
       </div>
     </header>
   );

@@ -1,13 +1,14 @@
 {
-  "name": "tauri-app",
+  "name": "crescent",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "bump": "node scripts/bump-version.js"
   },
   "dependencies": {
     "@tabler/icons-react": "^3.46.0",

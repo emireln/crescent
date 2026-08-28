@@ -48,5 +48,23 @@ npm run tauri build
 
 ---
 
+## 📚 Documentação Completa (`docs/`)
+
+Para detalhes aprofundados sobre a construção e o funcionamento interno do projeto, consulte a pasta [`docs/`](./docs):
+- [**Visão Geral & Manifesto Pessoal**](./docs/README.md)
+- [**Arquitetura do Backend Rust & SQLite**](./docs/ARQUITETURA.md)
+- [**Guia de Desenvolvimento & Versionamento**](./docs/GUIA_DESENVOLVIMENTO.md)
+- [**Design System Monocromático Estrito**](./docs/DESIGN_SYSTEM.md)
+
+---
+
+## 👤 Autor & Links
+
+- **Website / Portfólio:** [emirln.com](https://emirln.com)
+- **Apoiar no Buy Me a Coffee:** [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)
+- **GitHub:** [@emireln](https://github.com/emireln)
+
+---
+
 ## 📄 Licença
 Distribuído sob a licença MIT. Consulte `LICENSE` para obter mais informações.
