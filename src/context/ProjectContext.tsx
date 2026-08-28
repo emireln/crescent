@@ -133,14 +133,56 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [loading, setLoading] = useState(true);
 
-  // Filters & State
+  // Filters & State with Local/SQLite persistence
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('all');
+  const [selectedCategory, setSelectedCategoryState] = useState<FilterCategory>(() => {
+    try {
+      return (localStorage.getItem('crescent_selected_category') as FilterCategory) || 'all';
+    } catch {
+      return 'all';
+    }
+  });
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortOption, setSortOption] = useState<SortOption>('last_modified');
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    try {
+      return (localStorage.getItem('crescent_view_mode') as ViewMode) || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+  const [sortOption, setSortOptionState] = useState<SortOption>(() => {
+    try {
+      return (localStorage.getItem('crescent_sort_option') as SortOption) || 'last_modified';
+    } catch {
+      return 'last_modified';
+    }
+  });
+
+  const setSelectedCategory = useCallback((cat: FilterCategory) => {
+    setSelectedCategoryState(cat);
+    try {
+      localStorage.setItem('crescent_selected_category', cat);
+      api.saveSetting('ui_selected_category', cat);
+    } catch {}
+  }, []);
+
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    try {
+      localStorage.setItem('crescent_view_mode', mode);
+      api.saveSetting('ui_view_mode', mode);
+    } catch {}
+  }, []);
+
+  const setSortOption = useCallback((opt: SortOption) => {
+    setSortOptionState(opt);
+    try {
+      localStorage.setItem('crescent_sort_option', opt);
+      api.saveSetting('ui_sort_option', opt);
+    } catch {}
+  }, []);
 
   // Modals
   const [activeProject, setActiveProject] = useState<Project | null>(null);
@@ -189,6 +231,10 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const data = await api.getSettings();
       setSettings(data);
+      const raw = data as unknown as Record<string, string>;
+      if (raw.ui_view_mode) setViewModeState(raw.ui_view_mode as ViewMode);
+      if (raw.ui_sort_option) setSortOptionState(raw.ui_sort_option as SortOption);
+      if (raw.ui_selected_category) setSelectedCategoryState(raw.ui_selected_category as FilterCategory);
     } catch (err) {
       console.error('Erro ao carregar configurações:', err);
     }

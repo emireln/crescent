@@ -26,6 +26,8 @@ import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
 import { Tooltip } from '../common/Tooltip';
 
+import { api } from '../../services/api';
+
 export const Sidebar: React.FC = () => {
   const {
     selectedCategory,
@@ -60,9 +62,23 @@ export const Sidebar: React.FC = () => {
   const [newTagName, setNewTagName] = useState('');
   const newTagColor = '#a1a1aa';
 
+  // Load from SQLite on mount
+  useEffect(() => {
+    const loadState = async () => {
+      try {
+        const raw = await api.getSettings();
+        if ((raw as unknown as Record<string, string>).ui_sidebar_collapsed !== undefined) {
+          setIsCollapsed((raw as unknown as Record<string, string>).ui_sidebar_collapsed === 'true');
+        }
+      } catch {}
+    };
+    loadState();
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('crescent_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+      api.saveSetting('ui_sidebar_collapsed', isCollapsed ? 'true' : 'false');
     } catch {
       // Ignore
     }
