@@ -19,8 +19,8 @@ import {
   IconDatabase,
   IconCode,
   IconBrain,
-  IconChevronLeft,
-  IconChevronRight,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
@@ -81,31 +81,31 @@ export const Sidebar: React.FC = () => {
   };
 
   const categories: { id: FilterCategory; label: string; icon: React.ReactNode; count: number }[] = [
-    { id: 'all', label: 'Todos os Projetos', icon: <IconFolders size={16} />, count: stats.total },
-    { id: 'favorites', label: 'Favoritos & Fixados', icon: <IconStar size={16} />, count: stats.favorites },
-    { id: 'active', label: 'Ativos', icon: <IconPlayerPlay size={16} />, count: stats.active },
-    { id: 'on_hold', label: 'Em Espera', icon: <IconPlayerPause size={16} />, count: stats.onHold },
-    { id: 'completed', label: 'Concluídos', icon: <IconCircleCheck size={16} />, count: stats.completed },
-    { id: 'archived', label: 'Arquivados', icon: <IconArchive size={16} />, count: stats.archived },
-    { id: 'dirty', label: 'Git Pendente', icon: <IconGitPullRequest size={16} />, count: stats.dirty },
+    { id: 'all', label: 'Todos os Projetos', icon: <IconFolders size={18} />, count: stats.total },
+    { id: 'favorites', label: 'Favoritos & Fixados', icon: <IconStar size={18} />, count: stats.favorites },
+    { id: 'active', label: 'Ativos', icon: <IconPlayerPlay size={18} />, count: stats.active },
+    { id: 'on_hold', label: 'Em Espera', icon: <IconPlayerPause size={18} />, count: stats.onHold },
+    { id: 'completed', label: 'Concluídos', icon: <IconCircleCheck size={18} />, count: stats.completed },
+    { id: 'archived', label: 'Arquivados', icon: <IconArchive size={18} />, count: stats.archived },
+    { id: 'dirty', label: 'Git Pendente', icon: <IconGitPullRequest size={18} />, count: stats.dirty },
   ];
 
   return (
     <aside
       className={`h-[calc(100vh-2.75rem)] bg-zinc-950 flex flex-col justify-between select-none shrink-0 transition-all duration-150 ${
-        isCollapsed ? 'w-14' : 'w-60'
+        isCollapsed ? 'w-14' : 'w-64'
       }`}
     >
       {/* Top Header & Actions */}
-      <div className="p-2.5 flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center gap-1.5 flex-1 pr-1">
+      <div className="p-2.5">
+        {!isCollapsed ? (
+          <div className="flex items-center gap-1.5 w-full">
             <button
               type="button"
               onClick={() => setIsNewProjectOpen(true)}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 h-9 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-xs font-medium transition-colors shadow-sm cursor-pointer"
             >
-              <IconFolderPlus size={15} />
+              <IconFolderPlus size={16} />
               <span>Novo Projeto</span>
             </button>
 
@@ -113,26 +113,35 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsScannerOpen(true)}
-                className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-md transition-colors cursor-pointer"
+                className="w-9 h-9 flex items-center justify-center bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
               >
-                <IconScan size={15} />
+                <IconScan size={17} />
+              </button>
+            </Tooltip>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <Tooltip content="Novo Projeto" shortcut="Ctrl N" position="right" className="w-full">
+              <button
+                type="button"
+                onClick={() => setIsNewProjectOpen(true)}
+                className="w-10 h-10 flex items-center justify-center mx-auto bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg transition-colors cursor-pointer shadow-sm"
+              >
+                <IconFolderPlus size={18} />
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Escanear Pastas" shortcut="Ctrl F" position="right" className="w-full">
+              <button
+                type="button"
+                onClick={() => setIsScannerOpen(true)}
+                className="w-10 h-10 flex items-center justify-center mx-auto bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <IconScan size={18} />
               </button>
             </Tooltip>
           </div>
         )}
-
-        {/* Toggle Collapse Button */}
-        <Tooltip content={isCollapsed ? 'Expandir barra lateral' : 'Recolher barra lateral'} position="right">
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(prev => !prev)}
-            className={`p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-md transition-colors cursor-pointer ${
-              isCollapsed ? 'mx-auto' : ''
-            }`}
-          >
-            {isCollapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
-          </button>
-        </Tooltip>
       </div>
 
       {/* Main Navigation Area */}
@@ -140,7 +149,7 @@ export const Sidebar: React.FC = () => {
         {/* Categories Section */}
         <div className="space-y-0.5">
           {!isCollapsed && (
-            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
+            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Visualizações
             </div>
           )}
@@ -155,12 +164,12 @@ export const Sidebar: React.FC = () => {
                   setSelectedTagId(null);
                   setSelectedWorkspaceId(null);
                 }}
-                className={`w-full flex items-center justify-between rounded-md text-xs transition-colors cursor-pointer ${
-                  isCollapsed ? 'p-2 justify-center' : 'px-2.5 py-1.5'
+                className={`w-full flex items-center justify-between rounded-lg text-xs transition-colors cursor-pointer ${
+                  isCollapsed ? 'w-10 h-10 p-0 justify-center mx-auto' : 'px-2.5 py-2'
                 } ${
                   isSelected
                     ? 'bg-zinc-850 text-zinc-100 font-medium'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -169,7 +178,7 @@ export const Sidebar: React.FC = () => {
                 </div>
 
                 {!isCollapsed && (
-                  <span className={`text-[11px] font-mono ${isSelected ? 'text-zinc-300 font-medium' : 'text-zinc-400'}`}>
+                  <span className={`text-[11px] font-mono ${isSelected ? 'text-zinc-300 font-medium' : 'text-zinc-500'}`}>
                     {cat.count}
                   </span>
                 )}
@@ -196,13 +205,13 @@ export const Sidebar: React.FC = () => {
                     setSelectedTagId(null);
                     setSelectedWorkspaceId(null);
                   }}
-                  className={`w-full flex items-center justify-center p-2 rounded-md text-xs transition-colors cursor-pointer ${
+                  className={`w-10 h-10 flex items-center justify-center mx-auto rounded-lg text-xs transition-colors cursor-pointer ${
                     selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
                       ? 'bg-zinc-850 text-zinc-100 font-medium'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                   }`}
                 >
-                  <IconAlertTriangle size={16} className="text-zinc-400" />
+                  <IconAlertTriangle size={18} className="text-zinc-400" />
                 </button>
               </Tooltip>
             ) : (
@@ -213,14 +222,14 @@ export const Sidebar: React.FC = () => {
                   setSelectedTagId(null);
                   setSelectedWorkspaceId(null);
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
                   selectedCategory === 'missing' && selectedTagId === null && selectedWorkspaceId === null
                     ? 'bg-zinc-850 text-zinc-100 font-medium'
                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <IconAlertTriangle size={16} className="text-zinc-400" />
+                  <IconAlertTriangle size={18} className="text-zinc-400" />
                   <span>Pastas Ausentes</span>
                 </div>
                 <span className="text-[11px] font-mono text-zinc-300">
@@ -234,7 +243,7 @@ export const Sidebar: React.FC = () => {
         {/* Supertools Section */}
         <div className="space-y-0.5 pt-1">
           {!isCollapsed && (
-            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-400 uppercase">
+            <div className="px-2.5 pb-1 text-[10px] font-medium tracking-wider text-zinc-500 uppercase">
               Ferramentas
             </div>
           )}
@@ -245,22 +254,22 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAiChatOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center mx-auto rounded-lg text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
               >
-                <IconBrain size={16} className="text-zinc-200" />
+                <IconBrain size={18} className="text-zinc-200" />
               </button>
             </Tooltip>
           ) : (
             <button
               type="button"
               onClick={() => setIsAiChatOpen(true)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <IconBrain size={16} className="text-zinc-200" />
+                <IconBrain size={18} className="text-zinc-200" />
                 <span>Crescent AI</span>
               </div>
-              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.2 rounded">
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded">
                 Ctrl J
               </kbd>
             </button>
@@ -272,22 +281,22 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsCodeSearchOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center mx-auto rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
               >
-                <IconCode size={16} className="text-zinc-400" />
+                <IconCode size={18} className="text-zinc-400" />
               </button>
             </Tooltip>
           ) : (
             <button
               type="button"
               onClick={() => setIsCodeSearchOpen(true)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <IconCode size={16} className="text-zinc-400" />
+                <IconCode size={18} className="text-zinc-400" />
                 <span>Busca de Código</span>
               </div>
-              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1 py-0.2 rounded">
+              <kbd className="text-[10px] font-mono text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded">
                 Ctrl+Shift+F
               </kbd>
             </button>
@@ -299,19 +308,19 @@ export const Sidebar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsDiskCleanerOpen(true)}
-                className="w-full flex items-center justify-center p-2 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center mx-auto rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
               >
-                <IconDatabase size={16} className="text-zinc-400" />
+                <IconDatabase size={18} className="text-zinc-400" />
               </button>
             </Tooltip>
           ) : (
             <button
               type="button"
               onClick={() => setIsDiskCleanerOpen(true)}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <IconDatabase size={16} className="text-zinc-400" />
+                <IconDatabase size={18} className="text-zinc-400" />
                 <span>Limpador de Disco</span>
               </div>
             </button>
@@ -322,14 +331,14 @@ export const Sidebar: React.FC = () => {
         {!isCollapsed && (
           <div className="pt-1">
             <div className="flex items-center justify-between px-2.5 pb-1">
-              <div className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase flex items-center gap-1.5">
-                <IconBriefcase size={13} />
+              <div className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase flex items-center gap-1.5">
+                <IconBriefcase size={14} />
                 <span>Workspaces</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsWorkspaceModalOpen(true)}
-                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                className="p-1 hover:bg-zinc-850 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Gerenciar Workspaces"
               >
                 <IconPlus size={14} />
@@ -338,7 +347,7 @@ export const Sidebar: React.FC = () => {
 
             <div className="space-y-0.5">
               {workspaces.length === 0 ? (
-                <div className="px-2.5 py-1 text-[11px] text-zinc-400">
+                <div className="px-2.5 py-1 text-[11px] text-zinc-500">
                   Nenhum workspace.
                 </div>
               ) : (
@@ -355,7 +364,7 @@ export const Sidebar: React.FC = () => {
                           setSelectedTagId(null);
                         }
                       }}
-                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+                      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-zinc-850 text-zinc-100 font-medium'
                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
@@ -363,10 +372,10 @@ export const Sidebar: React.FC = () => {
                       title={`Workspace: ${ws.name}`}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <IconBriefcase size={14} className="text-zinc-400 shrink-0" />
+                        <IconBriefcase size={15} className="text-zinc-400 shrink-0" />
                         <span className="truncate">{ws.name}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-400">
+                      <span className="text-[10px] font-mono text-zinc-500">
                         {ws.project_ids.length}
                       </span>
                     </div>
@@ -381,14 +390,14 @@ export const Sidebar: React.FC = () => {
         {!isCollapsed && (
           <div className="pt-1">
             <div className="flex items-center justify-between px-2.5 pb-1">
-              <div className="text-[10px] font-medium tracking-wider text-zinc-400 uppercase flex items-center gap-1.5">
-                <IconTag size={13} />
+              <div className="text-[10px] font-medium tracking-wider text-zinc-500 uppercase flex items-center gap-1.5">
+                <IconTag size={14} />
                 <span>Tags</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddingTag(prev => !prev)}
-                className="p-0.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                className="p-1 hover:bg-zinc-850 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 title="Criar Tag"
               >
                 <IconPlus size={14} />
@@ -396,26 +405,26 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {isAddingTag && (
-              <form onSubmit={handleCreateTag} className="p-2 mb-1 bg-zinc-900 rounded-md space-y-2">
+              <form onSubmit={handleCreateTag} className="p-2 mb-1 bg-zinc-900 rounded-lg space-y-2">
                 <input
                   type="text"
                   value={newTagName}
                   onChange={e => setNewTagName(e.target.value)}
                   placeholder="Nome da tag..."
                   autoFocus
-                  className="w-full px-2 py-1 bg-zinc-950 rounded text-xs text-zinc-200 placeholder-zinc-400 focus:outline-none"
+                  className="w-full px-2.5 py-1.5 bg-zinc-950 rounded text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
                 />
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center justify-end gap-1.5">
                   <button
                     type="button"
                     onClick={() => setIsAddingTag(false)}
-                    className="px-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                    className="px-2 py-1 text-[11px] text-zinc-400 hover:text-zinc-200 cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium cursor-pointer"
+                    className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded text-[11px] font-medium cursor-pointer"
                   >
                     Salvar
                   </button>
@@ -425,7 +434,7 @@ export const Sidebar: React.FC = () => {
 
             <div className="space-y-0.5">
               {tags.length === 0 ? (
-                <div className="px-2.5 py-1 text-[11px] text-zinc-400">
+                <div className="px-2.5 py-1 text-[11px] text-zinc-500">
                   Nenhuma tag.
                 </div>
               ) : (
@@ -434,7 +443,7 @@ export const Sidebar: React.FC = () => {
                   return (
                     <div
                       key={tag.id}
-                      className={`group flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors ${
+                      className={`group flex items-center justify-between px-2.5 py-2 rounded-lg text-xs transition-colors ${
                         isSelected
                           ? 'bg-zinc-850 text-zinc-100 font-medium'
                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
@@ -465,7 +474,7 @@ export const Sidebar: React.FC = () => {
                         className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
                         title="Excluir Tag"
                       >
-                        <IconTrash size={12} />
+                        <IconTrash size={13} />
                       </button>
                     </div>
                   );
@@ -476,37 +485,56 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
 
-      {/* Bottom Footer */}
-      <div className={`p-2 bg-zinc-950 flex items-center justify-between text-xs text-zinc-400 ${
-        isCollapsed ? 'flex-col gap-2' : ''
-      }`}>
-        {!isCollapsed ? (
-          <div className="flex items-center gap-1.5 px-1" title="100% Offline e local">
-            <IconShieldLock size={14} className="text-zinc-400" />
-            <span className="text-[11px] font-medium text-zinc-400">100% Offline</span>
-          </div>
-        ) : null}
+      {/* Bottom Footer Area: Expand/Collapse Button above Settings */}
+      <div className="p-2 bg-zinc-950 space-y-1">
+        {/* Expand / Collapse Button */}
+        {isCollapsed ? (
+          <Tooltip content="Expandir barra lateral" position="right" className="w-full">
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(false)}
+              className="w-10 h-10 flex items-center justify-center mx-auto hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 cursor-pointer"
+            >
+              <IconLayoutSidebarLeftExpand size={18} />
+            </button>
+          </Tooltip>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(true)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 text-xs cursor-pointer"
+          >
+            <IconLayoutSidebarLeftCollapse size={18} />
+            <span>Recolher Barra</span>
+          </button>
+        )}
 
+        {/* Settings Button */}
         {isCollapsed ? (
           <Tooltip content="Configurações" position="right" className="w-full">
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
-              className="w-full flex items-center justify-center p-2 hover:bg-zinc-900 hover:text-zinc-200 rounded-md transition-colors text-zinc-400 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center mx-auto hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 cursor-pointer"
             >
-              <IconSettings size={16} />
+              <IconSettings size={18} />
             </button>
           </Tooltip>
         ) : (
-          <Tooltip content="Configurações (Editor, Terminal, IA, Backup)" position="top">
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1 p-1.5 hover:bg-zinc-900 hover:text-zinc-200 rounded-md transition-colors text-zinc-400 cursor-pointer"
-            >
-              <IconSettings size={16} />
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-zinc-900 hover:text-zinc-100 rounded-lg transition-colors text-zinc-400 text-xs cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <IconSettings size={18} />
+              <span>Configurações</span>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+              <IconShieldLock size={12} />
+              <span>Offline</span>
+            </div>
+          </button>
         )}
       </div>
     </aside>
