@@ -1,0 +1,458 @@
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  Project,
+  Tag,
+  AppSettings,
+  ViewMode,
+  FilterCategory,
+  SortOption,
+  CreateProjectInput,
+  UpdateProjectInput,
+  ScriptExecutionResult,
+  DiscoveredProject,
+} from '../types';
+import { api } from '../services/api';
+
+interface ProjectContextType {
+  projects: Project[];
+  tags: Tag[];
+  settings: AppSettings;
+  loading: boolean;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  selectedCategory: FilterCategory;
+  setSelectedCategory: (cat: FilterCategory) => void;
+  selectedTagId: string | null;
+  setSelectedTagId: (id: string | null) => void;
+  selectedTech: string | null;
+  setSelectedTech: (tech: string | null) => void;
+  viewMode: ViewMode;
+  setViewMode: (v: ViewMode) => void;
+  sortOption: SortOption;
+  setSortOption: (s: SortOption) => void;
+
+  // Active detail modal
+  activeProject: Project | null;
+  setActiveProject: (p: Project | null) => void;
+
+  // Modals state
+  isScannerOpen: boolean;
+  setIsScannerOpen: (open: boolean) => void;
+  isNewProjectOpen: boolean;
+  setIsNewProjectOpen: (open: boolean) => void;
+  isCommandPaletteOpen: boolean;
+  setIsCommandPaletteOpen: (open: boolean) => void;
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
+
+  // Filtered & Sorted Projects
+  filteredProjects: Project[];
+  availableTechs: string[];
+  stats: {
+    total: number;
+    favorites: number;
+    active: number;
+    onHold: number;
+    completed: number;
+    archived: number;
+    missing: number;
+    dirty: number;
+  };
+
+  // Actions
+  refreshProjects: () => Promise<void>;
+  refreshTags: () => Promise<void>;
+  createProject: (input: CreateProjectInput) => Promise<Project>;
+  batchImportProjects: (discovered: DiscoveredProject[]) => Promise<void>;
+  updateProject: (input: UpdateProjectInput) => Promise<Project>;
+  deleteProject: (id: string) => Promise<void>;
+  toggleFavorite: (id: string) => Promise<void>;
+  togglePinned: (id: string) => Promise<void>;
+  updateNotes: (id: string, notes: string) => Promise<void>;
+  relocateProject: (id: string, newPath: string) => Promise<void>;
+
+  // Tags Actions
+  createTag: (name: string, color: string) => Promise<Tag>;
+  deleteTag: (id: string) => Promise<void>;
+
+  // Scripts & Ports Actions
+  addScript: (projectId: string, name: string, command: string) => Promise<void>;
+  deleteScript: (id: string) => Promise<void>;
+  addPort: (projectId: string, port: number, description: string) => Promise<void>;
+  deletePort: (id: string) => Promise<void>;
+
+  // Launchers
+  openInEditor: (project: Project) => Promise<void>;
+  openInTerminal: (project: Project) => Promise<void>;
+  openInExplorer: (project: Project) => Promise<void>;
+  runScript: (project: Project, command: string) => Promise<ScriptExecutionResult>;
+  saveSetting: (key: string, value: string) => Promise<void>;
+}
+
+const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
+
+export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    default_editor: 'code',
+    custom_editor_path: '',
+    default_terminal: 'powershell',
+    custom_terminal_path: '',
+    scan_depth: '4',
+    scan_ignore: 'node_modules,target,.venv,dist,build,.git,.next,.nuxt',
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Filters & State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('all');
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [selectedTech, setSelectedTech] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [sortOption, setSortOption] = useState<SortOption>('last_modified');
+
+  // Modals
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const refreshProjects = useCallback(async () => {
+    try {
+      const data = await api.getProjects();
+      setProjects(data);
+      // If activeProject is open, update its reference
+      if (activeProject) {
+        const updated = data.find(p => p.id === activeProject.id);
+        if (updated) setActiveProject(updated);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar projetos:', err);
+    }
+  }, [activeProject]);
+
+  const refreshTags = useCallback(async () => {
+    try {
+      const data = await api.getTags();
+      setTags(data);
+    } catch (err) {
+      console.error('Erro ao carregar tags:', err);
+    }
+  }, []);
+
+  const refreshSettings = useCallback(async () => {
+    try {
+      const data = await api.getSettings();
+      setSettings(data);
+    } catch (err) {
+      console.error('Erro ao carregar configurações:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      await Promise.all([refreshProjects(), refreshTags(), refreshSettings()]);
+      setLoading(false);
+    };
+    init();
+  }, []);
+
+  // Global keyboard shortcuts (Ctrl+K, etc.)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setIsNewProjectOpen(true);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setIsScannerOpen(true);
+      }
+      if (e.key === 'Escape') {
+        if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
+        else if (isScannerOpen) setIsScannerOpen(false);
+        else if (isNewProjectOpen) setIsNewProjectOpen(false);
+        else if (isSettingsOpen) setIsSettingsOpen(false);
+        else if (activeProject) setActiveProject(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCommandPaletteOpen, isScannerOpen, isNewProjectOpen, isSettingsOpen, activeProject]);
+
+  // Derived filtered & sorted projects
+  const filteredProjects = useMemo(() => {
+    return projects
+      .filter(p => {
+        // Search Query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const matchName = p.name.toLowerCase().includes(q);
+          const matchPath = p.path.toLowerCase().includes(q);
+          const matchDesc = p.description.toLowerCase().includes(q);
+          const matchTech = p.tech_stack.some(t => t.toLowerCase().includes(q));
+          const matchTag = p.tags.some(t => t.name.toLowerCase().includes(q));
+          if (!matchName && !matchPath && !matchDesc && !matchTech && !matchTag) {
+            return false;
+          }
+        }
+
+        // Category Filter
+        if (selectedCategory === 'favorites' && !p.is_favorite) return false;
+        if (selectedCategory === 'active' && p.status !== 'active') return false;
+        if (selectedCategory === 'on_hold' && p.status !== 'on_hold') return false;
+        if (selectedCategory === 'completed' && p.status !== 'completed') return false;
+        if (selectedCategory === 'archived' && p.status !== 'archived') return false;
+        if (selectedCategory === 'missing' && p.exists_on_disk) return false;
+        if (selectedCategory === 'dirty' && !p.git_dirty) return false;
+
+        // Tag Filter
+        if (selectedTagId && !p.tags.some(t => t.id === selectedTagId)) {
+          return false;
+        }
+
+        // Tech Filter
+        if (selectedTech && !p.tech_stack.includes(selectedTech) && p.primary_tech !== selectedTech) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        // Pinned projects are always first
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+
+        if (sortOption === 'name') {
+          return a.name.localeCompare(b.name);
+        }
+        if (sortOption === 'size') {
+          return b.size_bytes - a.size_bytes;
+        }
+        if (sortOption === 'status') {
+          return a.status.localeCompare(b.status);
+        }
+        // Default: last_modified
+        return b.last_modified - a.last_modified;
+      });
+  }, [projects, searchQuery, selectedCategory, selectedTagId, selectedTech, sortOption]);
+
+  const availableTechs = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of projects) {
+      if (p.primary_tech) set.add(p.primary_tech);
+      for (const t of p.tech_stack) set.add(t);
+    }
+    return Array.from(set).sort();
+  }, [projects]);
+
+  const stats = useMemo(() => {
+    return {
+      total: projects.length,
+      favorites: projects.filter(p => p.is_favorite).length,
+      active: projects.filter(p => p.status === 'active').length,
+      onHold: projects.filter(p => p.status === 'on_hold').length,
+      completed: projects.filter(p => p.status === 'completed').length,
+      archived: projects.filter(p => p.status === 'archived').length,
+      missing: projects.filter(p => !p.exists_on_disk).length,
+      dirty: projects.filter(p => p.git_dirty).length,
+    };
+  }, [projects]);
+
+  // Actions
+  const createProject = async (input: CreateProjectInput): Promise<Project> => {
+    const created = await api.createProject(input);
+    await refreshProjects();
+    return created;
+  };
+
+  const batchImportProjects = async (discovered: DiscoveredProject[]): Promise<void> => {
+    for (const d of discovered) {
+      await api.createProject({
+        name: d.name,
+        path: d.path,
+        primary_tech: d.primary_tech,
+        tech_stack: d.tech_stack,
+        status: 'active',
+      });
+    }
+    await refreshProjects();
+  };
+
+  const updateProject = async (input: UpdateProjectInput): Promise<Project> => {
+    const updated = await api.updateProject(input);
+    await refreshProjects();
+    return updated;
+  };
+
+  const deleteProject = async (id: string): Promise<void> => {
+    await api.deleteProject(id);
+    if (activeProject?.id === id) setActiveProject(null);
+    await refreshProjects();
+  };
+
+  const toggleFavorite = async (id: string): Promise<void> => {
+    await api.toggleFavorite(id);
+    setProjects(prev =>
+      prev.map(p => (p.id === id ? { ...p, is_favorite: !p.is_favorite } : p))
+    );
+  };
+
+  const togglePinned = async (id: string): Promise<void> => {
+    await api.togglePinned(id);
+    setProjects(prev =>
+      prev.map(p => (p.id === id ? { ...p, is_pinned: !p.is_pinned } : p))
+    );
+  };
+
+  const updateNotes = async (id: string, notes: string): Promise<void> => {
+    await api.updateProjectNotes(id, notes);
+    setProjects(prev =>
+      prev.map(p => (p.id === id ? { ...p, notes } : p))
+    );
+    if (activeProject?.id === id) {
+      setActiveProject(prev => (prev ? { ...prev, notes } : null));
+    }
+  };
+
+  const relocateProject = async (id: string, newPath: string): Promise<void> => {
+    const updated = await api.relocateProject(id, newPath);
+    await refreshProjects();
+    if (activeProject?.id === id) setActiveProject(updated);
+  };
+
+  const createTag = async (name: string, color: string): Promise<Tag> => {
+    const t = await api.createTag(name, color);
+    await refreshTags();
+    return t;
+  };
+
+  const deleteTag = async (id: string): Promise<void> => {
+    await api.deleteTag(id);
+    if (selectedTagId === id) setSelectedTagId(null);
+    await refreshTags();
+    await refreshProjects();
+  };
+
+  const addScript = async (projectId: string, name: string, command: string): Promise<void> => {
+    await api.addProjectScript(projectId, name, command);
+    await refreshProjects();
+  };
+
+  const deleteScript = async (id: string): Promise<void> => {
+    await api.deleteProjectScript(id);
+    await refreshProjects();
+  };
+
+  const addPort = async (projectId: string, port: number, description: string): Promise<void> => {
+    await api.addProjectPort(projectId, port, description);
+    await refreshProjects();
+  };
+
+  const deletePort = async (id: string): Promise<void> => {
+    await api.deleteProjectPort(id);
+    await refreshProjects();
+  };
+
+  const openInEditor = async (project: Project): Promise<void> => {
+    await api.openInEditor(
+      project.path,
+      settings.default_editor,
+      settings.custom_editor_path
+    );
+  };
+
+  const openInTerminal = async (project: Project): Promise<void> => {
+    await api.openInTerminal(
+      project.path,
+      settings.default_terminal,
+      settings.custom_terminal_path
+    );
+  };
+
+  const openInExplorer = async (project: Project): Promise<void> => {
+    await api.openInExplorer(project.path);
+  };
+
+  const runScript = async (project: Project, command: string): Promise<ScriptExecutionResult> => {
+    return await api.runScript(project.path, command);
+  };
+
+  const saveSetting = async (key: string, value: string): Promise<void> => {
+    await api.saveSetting(key, value);
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  return (
+    <ProjectContext.Provider
+      value={{
+        projects,
+        tags,
+        settings,
+        loading,
+        searchQuery,
+        setSearchQuery,
+        selectedCategory,
+        setSelectedCategory,
+        selectedTagId,
+        setSelectedTagId,
+        selectedTech,
+        setSelectedTech,
+        viewMode,
+        setViewMode,
+        sortOption,
+        setSortOption,
+        activeProject,
+        setActiveProject,
+        isScannerOpen,
+        setIsScannerOpen,
+        isNewProjectOpen,
+        setIsNewProjectOpen,
+        isCommandPaletteOpen,
+        setIsCommandPaletteOpen,
+        isSettingsOpen,
+        setIsSettingsOpen,
+        filteredProjects,
+        availableTechs,
+        stats,
+        refreshProjects,
+        refreshTags,
+        createProject,
+        batchImportProjects,
+        updateProject,
+        deleteProject,
+        toggleFavorite,
+        togglePinned,
+        updateNotes,
+        relocateProject,
+        createTag,
+        deleteTag,
+        addScript,
+        deleteScript,
+        addPort,
+        deletePort,
+        openInEditor,
+        openInTerminal,
+        openInExplorer,
+        runScript,
+        saveSetting,
+      }}
+    >
+      {children}
+    </ProjectContext.Provider>
+  );
+};
+
+export const useProjects = (): ProjectContextType => {
+  const ctx = useContext(ProjectContext);
+  if (!ctx) throw new Error('useProjects must be used within a ProjectProvider');
+  return ctx;
+};
