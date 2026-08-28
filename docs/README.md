@@ -1,6 +1,6 @@
 # Crescent — Documentação Oficial
 
-Olá! Eu criei o **Crescent** para resolver um problema real que enfrentei diariamente como desenvolvedor: a desorganização e perda de contexto ao gerenciar dezenas de projetos e repositórios de código espalhados pelo computador.
+Eu criei o **Crescent** para resolver um problema real que enfrentei diariamente como desenvolvedor: a desorganização e perda de contexto ao gerenciar dezenas de projetos e repositórios de código espalhados pelo computador.
 
 Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigatório, consomem gigabytes de memória RAM ou utilizam interfaces poluídas e lentas. O Crescent foi construído do zero para ser o oposto: **100% offline, ultrarrápido, nativo para Windows e estritamente focado em produtividade.**
 
