@@ -7,7 +7,6 @@ import {
   IconGitBranch,
   IconCircleFilled,
   IconFolderOff,
-  IconFolderCheck,
   IconTerminal2,
   IconFolder,
   IconNotes,
@@ -41,7 +40,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   } = useProjects();
 
   const statusBadge = getStatusBadge(project.status);
-
   const hasActivePort = project.ports.some(p => portStatuses[p.port]?.is_active);
 
   const handleRelocate = async (e: React.MouseEvent) => {
@@ -62,31 +60,31 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
     <div
       onClick={() => setActiveProject(project)}
-      className={`group relative flex flex-col justify-between bg-zinc-900 border rounded-lg p-4 transition-all cursor-pointer ${
+      className={`group relative flex flex-col justify-between bg-zinc-900/90 hover:bg-zinc-900 border rounded-lg p-3.5 transition-all cursor-pointer ${
         !project.exists_on_disk
-          ? 'border-zinc-600 bg-zinc-900 hover:border-zinc-500'
+          ? 'border-zinc-700'
           : project.is_pinned
-          ? 'border-zinc-600 bg-zinc-900 hover:border-zinc-500 shadow-sm'
-          : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-850'
+          ? 'border-zinc-700 bg-zinc-900'
+          : 'border-zinc-800/80 hover:border-zinc-700'
       }`}
     >
       <div>
         {/* Top Header Row */}
-        <div className="flex items-start justify-between gap-2 mb-2.5">
-          <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-            {/* Pinned & Favorite buttons */}
-            <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {/* Pinned & Favorite */}
+            <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => togglePinned(project.id)}
                 className={`p-1 rounded transition-colors ${
                   project.is_pinned
-                    ? 'text-zinc-100 bg-zinc-800 hover:bg-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
+                    ? 'text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-300'
                 }`}
                 title={project.is_pinned ? 'Desafixar' : 'Fixar no topo'}
               >
-                {project.is_pinned ? <IconPinFilled size={14} /> : <IconPin size={14} />}
+                {project.is_pinned ? <IconPinFilled size={13} /> : <IconPin size={13} />}
               </button>
 
               <button
@@ -94,23 +92,23 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 onClick={() => toggleFavorite(project.id)}
                 className={`p-1 rounded transition-colors ${
                   project.is_favorite
-                    ? 'text-zinc-100 bg-zinc-800 hover:bg-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
+                    ? 'text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-300'
                 }`}
                 title={project.is_favorite ? 'Remover dos favoritos' : 'Favoritar'}
               >
-                {project.is_favorite ? <IconStarFilled size={14} /> : <IconStar size={14} />}
+                {project.is_favorite ? <IconStarFilled size={13} /> : <IconStar size={13} />}
               </button>
             </div>
 
             {/* Project Name */}
-            <h3 className="font-semibold text-zinc-50 text-sm truncate tracking-tight" title={project.name}>
+            <h3 className="font-semibold text-zinc-100 text-sm truncate tracking-tight" title={project.name}>
               {project.name}
             </h3>
 
-            {/* Primary Tech Badge */}
+            {/* Primary Tech */}
             <span
-              className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded border shrink-0 ${getTechColor(
+              className={`text-[10px] font-mono px-1.5 py-0.2 rounded border shrink-0 ${getTechColor(
                 project.primary_tech
               )}`}
             >
@@ -126,156 +124,150 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </span>
         </div>
 
-        {/* Missing Folder Warning Banner */}
+        {/* Missing Folder Warning */}
         {!project.exists_on_disk && (
           <div
-            className="mb-3 p-2.5 bg-zinc-950 border border-zinc-700 rounded text-xs flex flex-col gap-2"
+            className="mb-2.5 p-2 bg-zinc-950 border border-zinc-800 rounded text-xs flex items-center justify-between gap-2"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 text-zinc-200 font-medium">
-              <IconFolderOff size={16} className="text-zinc-300 shrink-0" />
-              <span>Diretório não encontrado no disco (movido ou deletado).</span>
+            <div className="flex items-center gap-1.5 text-zinc-300 text-[11px] truncate">
+              <IconFolderOff size={14} className="shrink-0 text-zinc-400" />
+              <span className="truncate">Pasta não encontrada</span>
             </div>
-            <div className="flex items-center gap-2 pt-1 border-t border-zinc-800">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={handleRelocate}
-                className="flex items-center gap-1 px-2.5 py-1 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-[11px] font-semibold transition-colors"
+                className="px-2 py-0.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded text-[11px] font-medium transition-colors"
               >
-                <IconFolderCheck size={13} />
-                <span>Localizar Pasta</span>
+                Localizar
               </button>
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded text-[11px] transition-colors"
+                className="p-1 text-zinc-400 hover:text-zinc-200"
+                title="Remover"
               >
-                <IconTrash size={13} />
-                <span>Remover da Lista</span>
+                <IconTrash size={12} />
               </button>
             </div>
           </div>
         )}
 
         {/* Path and Description */}
-        <div className="space-y-1 mb-3">
+        <div className="space-y-1 mb-2.5">
           <p
-            className="text-[11px] font-mono text-zinc-400 truncate bg-zinc-950 px-2 py-1 rounded border border-zinc-800 select-text"
+            className="text-[11px] font-mono text-zinc-400 truncate select-text"
             title={project.path}
           >
             {project.path}
           </p>
           {project.description && (
-            <p className="text-xs text-zinc-300 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-zinc-300 line-clamp-1 leading-normal">
               {project.description}
             </p>
           )}
         </div>
 
-        {/* Git & Ports Indicators */}
-        <div className="flex items-center gap-2 flex-wrap mb-3 text-xs">
+        {/* Git & Indicators */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2 text-xs">
           {project.git_branch && (
             <div
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-mono ${
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono ${
                 project.git_dirty
-                  ? 'border-zinc-600 bg-zinc-800 text-zinc-100'
-                  : 'border-zinc-800 bg-zinc-950 text-zinc-400'
+                  ? 'bg-zinc-800 text-zinc-200 border border-zinc-700'
+                  : 'bg-zinc-950 text-zinc-400 border border-zinc-850'
               }`}
               title={
                 project.git_dirty
-                  ? `Branch: ${project.git_branch} (Arquivos modificados / uncommitted)`
-                  : `Branch: ${project.git_branch} (Tudo sincronizado)`
+                  ? `Branch: ${project.git_branch} (Alterações pendentes)`
+                  : `Branch: ${project.git_branch}`
               }
             >
-              <IconGitBranch size={13} />
+              <IconGitBranch size={12} />
               <span>{project.git_branch}</span>
               {project.git_dirty && (
-                <IconCircleFilled size={6} className="text-zinc-100 ml-0.5" />
+                <IconCircleFilled size={5} className="text-zinc-100 ml-0.5" />
               )}
             </div>
           )}
 
           {project.ports.length > 0 && (
-            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-mono ${
-              hasActivePort ? 'border-zinc-600 bg-zinc-800 text-zinc-100' : 'border-zinc-700 bg-zinc-850 text-zinc-200'
+            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono border ${
+              hasActivePort ? 'border-zinc-700 bg-zinc-800 text-zinc-100' : 'border-zinc-850 bg-zinc-950 text-zinc-400'
             }`}>
-              <IconWorld size={12} />
+              <IconWorld size={11} />
               <span>:{project.ports.map(p => p.port).join(', ')}</span>
               {hasActivePort && (
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" title="Porta ativa em execução" />
+                <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
               )}
             </div>
           )}
 
           {project.notes && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-zinc-800 bg-zinc-950 text-zinc-400 text-[11px]" title="Contém anotações">
-              <IconNotes size={12} />
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-zinc-850 bg-zinc-950 text-zinc-400 text-[10px]" title="Contém anotações">
+              <IconNotes size={11} />
               <span>Notas</span>
             </div>
           )}
-        </div>
 
-        {/* Tags */}
-        {project.tags.length > 0 && (
-          <div className="flex items-center gap-1.5 flex-wrap mb-3">
-            {project.tags.map(tag => (
-              <span
-                key={tag.id}
-                className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-zinc-850 border border-zinc-700 text-zinc-300 font-medium"
-              >
-                #{tag.name}
-              </span>
-            ))}
-          </div>
-        )}
+          {project.tags.map(tag => (
+            <span
+              key={tag.id}
+              className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-950 border border-zinc-850 text-zinc-400"
+            >
+              #{tag.name}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Footer: Metadata & Quick Actions */}
-      <div className="pt-3 border-t border-zinc-800 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
-        <div className="flex items-center gap-3">
+      <div className="pt-2 border-t border-zinc-850/60 flex items-center justify-between gap-2 text-[11px] text-zinc-400">
+        <div className="flex items-center gap-2.5 text-zinc-400">
           <span className="flex items-center gap-1" title="Última modificação">
-            <IconClock size={13} className="text-zinc-500" />
+            <IconClock size={12} />
             <span>{formatRelativeTime(project.last_modified)}</span>
           </span>
 
           {project.size_bytes > 0 && (
-            <span className="flex items-center gap-1" title="Tamanho aproximado">
-              <IconDatabase size={13} className="text-zinc-500" />
+            <span className="flex items-center gap-1" title="Tamanho">
+              <IconDatabase size={12} />
               <span>{formatBytes(project.size_bytes)}</span>
             </span>
           )}
         </div>
 
-        {/* One-Click Action Buttons */}
-        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        {/* Quick Actions */}
+        <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
           <button
             type="button"
             onClick={() => openInEditor(project)}
             disabled={!project.exists_on_disk}
-            className="p-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-200 text-zinc-200 rounded border border-zinc-700 transition-colors"
-            title={`Abrir no editor (${settings.default_editor})`}
+            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            title={`Abrir no ${settings.default_editor}`}
           >
-            <EditorIcon editor={settings.default_editor} size={14} />
+            <EditorIcon editor={settings.default_editor} size={13} />
           </button>
 
           <button
             type="button"
             onClick={() => openInTerminal(project)}
             disabled={!project.exists_on_disk}
-            className="p-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-200 text-zinc-200 rounded border border-zinc-700 transition-colors"
-            title={`Abrir no terminal (${settings.default_terminal})`}
+            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            title="Abrir no Terminal"
           >
-            <IconTerminal2 size={14} />
+            <IconTerminal2 size={13} />
           </button>
 
           <button
             type="button"
             onClick={() => openInExplorer(project)}
             disabled={!project.exists_on_disk}
-            className="p-1.5 bg-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-200 text-zinc-200 rounded border border-zinc-700 transition-colors"
-            title="Revelar no Explorador de Arquivos"
+            className="p-1 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 rounded transition-colors"
+            title="Explorador de Arquivos"
           >
-            <IconFolder size={14} />
+            <IconFolder size={13} />
           </button>
         </div>
       </div>

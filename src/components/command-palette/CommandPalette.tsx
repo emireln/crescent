@@ -4,13 +4,16 @@ import {
   IconFolderPlus,
   IconScan,
   IconSettings,
-  IconCode,
   IconTerminal2,
   IconStar,
   IconBrain,
+  IconDatabase,
+  IconCode,
+  IconBriefcase,
 } from '@tabler/icons-react';
 import { useProjects } from '../../context/ProjectContext';
 import { getTechColor } from '../../utils/formatters';
+import { EditorIcon } from '../common/EditorIcons';
 
 export const CommandPalette: React.FC = () => {
   const {
@@ -27,6 +30,7 @@ export const CommandPalette: React.FC = () => {
     setIsAiChatOpen,
     openInEditor,
     openInTerminal,
+    settings,
   } = useProjects();
 
   const [query, setQuery] = useState('');
@@ -43,7 +47,7 @@ export const CommandPalette: React.FC = () => {
 
   if (!isCommandPaletteOpen) return null;
 
-  // Filter projects and command actions
+  // Filter projects
   const filteredProjects = projects.filter(p => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
@@ -53,14 +57,15 @@ export const CommandPalette: React.FC = () => {
       p.primary_tech.toLowerCase().includes(q) ||
       p.tags.some(t => t.name.toLowerCase().includes(q))
     );
-  }).slice(0, 8);
+  }).slice(0, 7);
 
+  // Global Actions
   const actions = [
     {
       id: 'act-ai-chat',
-      title: 'Crescent AI Assistant (Chat)',
-      subtitle: 'Conversar com Ollama, Gemini, OpenAI, DeepSeek ou Claude (Ctrl+J)',
-      icon: <IconBrain size={16} className="text-zinc-100" />,
+      title: 'Crescent AI Assistant',
+      subtitle: 'Chat inteligente com contexto dos seus projetos locais (Ctrl + J)',
+      icon: <IconBrain size={15} className="text-zinc-200" />,
       action: () => {
         setIsCommandPaletteOpen(false);
         setIsAiChatOpen(true);
@@ -68,59 +73,59 @@ export const CommandPalette: React.FC = () => {
     },
     {
       id: 'act-new',
-      title: 'Adicionar Novo Projeto',
-      subtitle: 'Cadastrar manualmente via seletor de pastas (Ctrl+N)',
-      icon: <IconFolderPlus size={16} className="text-zinc-100" />,
+      title: 'Adicionar Projeto',
+      subtitle: 'Cadastrar manualmente ou por templates (Ctrl + N)',
+      icon: <IconFolderPlus size={15} className="text-zinc-200" />,
       action: () => {
         setIsCommandPaletteOpen(false);
         setIsNewProjectOpen(true);
       },
     },
     {
-      id: 'act-code-search',
-      title: 'Buscar Código nos Projetos',
-      subtitle: 'Pesquisar termos, funções ou variáveis em todos os repositórios (Ctrl+Shift+F)',
-      icon: <IconCode size={16} className="text-zinc-100" />,
-      action: () => {
-        setIsCommandPaletteOpen(false);
-        setIsCodeSearchOpen(true);
-      },
-    },
-    {
-      id: 'act-cleaner',
-      title: 'Limpador de Disco & Dependências',
-      subtitle: 'Remover node_modules, target/ e build artifacts com segurança',
-      icon: <IconSettings size={16} className="text-zinc-100" />,
-      action: () => {
-        setIsCommandPaletteOpen(false);
-        setIsDiskCleanerOpen(true);
-      },
-    },
-    {
-      id: 'act-workspaces',
-      title: 'Gerenciar Workspaces',
-      subtitle: 'Criar e organizar grupos de projetos para abertura em lote',
-      icon: <IconFolderPlus size={16} className="text-zinc-100" />,
-      action: () => {
-        setIsCommandPaletteOpen(false);
-        setIsWorkspaceModalOpen(true);
-      },
-    },
-    {
       id: 'act-scan',
-      title: 'Varredura Automática de Diretórios',
-      subtitle: 'Escanear pastas e detectar repositórios (Ctrl+F)',
-      icon: <IconScan size={16} className="text-zinc-100" />,
+      title: 'Escanear Pastas',
+      subtitle: 'Varredura recursiva de diretórios no computador (Ctrl + F)',
+      icon: <IconScan size={15} className="text-zinc-200" />,
       action: () => {
         setIsCommandPaletteOpen(false);
         setIsScannerOpen(true);
       },
     },
     {
+      id: 'act-code-search',
+      title: 'Buscar Código',
+      subtitle: 'Pesquisar termos em todos os repositórios (Ctrl + Shift + F)',
+      icon: <IconCode size={15} className="text-zinc-200" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsCodeSearchOpen(true);
+      },
+    },
+    {
+      id: 'act-workspaces',
+      title: 'Workspaces',
+      subtitle: 'Gerenciar grupos e abertura em lote de projetos',
+      icon: <IconBriefcase size={15} className="text-zinc-200" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsWorkspaceModalOpen(true);
+      },
+    },
+    {
+      id: 'act-cleaner',
+      title: 'Limpador de Disco',
+      subtitle: 'Liberar espaço em disco removendo node_modules e target',
+      icon: <IconDatabase size={15} className="text-zinc-200" />,
+      action: () => {
+        setIsCommandPaletteOpen(false);
+        setIsDiskCleanerOpen(true);
+      },
+    },
+    {
       id: 'act-settings',
-      title: 'Abrir Configurações',
-      subtitle: 'Configurar editor padrão, terminal e backup do banco SQLite',
-      icon: <IconSettings size={16} className="text-zinc-400" />,
+      title: 'Configurações',
+      subtitle: 'Preferências de editor, terminal e backup',
+      icon: <IconSettings size={15} className="text-zinc-200" />,
       action: () => {
         setIsCommandPaletteOpen(false);
         setIsSettingsOpen(true);
@@ -160,16 +165,16 @@ export const CommandPalette: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 p-4 pt-20"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/75 p-4 pt-20 animate-in fade-in duration-100"
       onClick={() => setIsCommandPaletteOpen(false)}
     >
       <div
-        className="bg-zinc-900 border border-zinc-700 rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col"
+        className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="p-3 bg-zinc-950 border-b border-zinc-800 flex items-center gap-3">
-          <IconSearch size={18} className="text-zinc-400" />
+        <div className="p-3 bg-zinc-950 border-b border-zinc-850 flex items-center gap-3">
+          <IconSearch size={16} className="text-zinc-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -179,19 +184,19 @@ export const CommandPalette: React.FC = () => {
               setSelectedIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Digite para buscar projetos, caminhos, stacks ou ações..."
-            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none"
+            placeholder="Buscar projetos, tags ou comandos..."
+            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-400 focus:outline-none"
           />
-          <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[10px] text-zinc-400 font-mono">
-            ESC para fechar
+          <kbd className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-[10px] text-zinc-400 font-mono">
+            ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="max-h-96 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-80 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
           {filteredProjects.length > 0 && (
             <div>
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+              <div className="px-2.5 py-1 text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
                 Projetos
               </div>
               {filteredProjects.map((p, idx) => {
@@ -204,10 +209,10 @@ export const CommandPalette: React.FC = () => {
                       setIsCommandPaletteOpen(false);
                     }}
                     onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`flex items-center justify-between px-3 py-2 rounded text-xs transition-colors cursor-pointer ${
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-md text-xs transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-zinc-800 text-zinc-50 border border-zinc-700'
-                        : 'text-zinc-300 hover:bg-zinc-850 border border-transparent'
+                        ? 'bg-zinc-850 text-zinc-100'
+                        : 'text-zinc-300 hover:bg-zinc-900'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -215,27 +220,27 @@ export const CommandPalette: React.FC = () => {
                         {p.primary_tech}
                       </span>
                       <div className="min-w-0">
-                        <div className="font-semibold text-zinc-100 truncate flex items-center gap-1.5">
+                        <div className="font-medium text-zinc-100 truncate flex items-center gap-1.5">
                           <span>{p.name}</span>
                           {p.is_favorite && <IconStar size={12} className="text-zinc-100" />}
                         </div>
-                        <div className="text-[11px] font-mono text-zinc-500 truncate">
+                        <div className="text-[11px] font-mono text-zinc-400 truncate">
                           {p.path}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center gap-1 shrink-0 ml-2" onClick={e => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => {
                           openInEditor(p);
                           setIsCommandPaletteOpen(false);
                         }}
-                        className="p-1 text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 rounded"
-                        title="Abrir no Editor"
+                        className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors"
+                        title={`Abrir no ${settings.default_editor}`}
                       >
-                        <IconCode size={13} />
+                        <EditorIcon editor={settings.default_editor} size={13} />
                       </button>
                       <button
                         type="button"
@@ -243,7 +248,7 @@ export const CommandPalette: React.FC = () => {
                           openInTerminal(p);
                           setIsCommandPaletteOpen(false);
                         }}
-                        className="p-1 text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 rounded"
+                        className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors"
                         title="Abrir no Terminal"
                       >
                         <IconTerminal2 size={13} />
@@ -256,9 +261,9 @@ export const CommandPalette: React.FC = () => {
           )}
 
           {actions.length > 0 && (
-            <div>
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
-                Ações Globais
+            <div className={filteredProjects.length > 0 ? 'pt-1.5' : ''}>
+              <div className="px-2.5 py-1 text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+                Ações
               </div>
               {actions.map((act, idx) => {
                 const itemIdx = filteredProjects.length + idx;
@@ -268,18 +273,18 @@ export const CommandPalette: React.FC = () => {
                     key={act.id}
                     onClick={act.action}
                     onMouseEnter={() => setSelectedIndex(itemIdx)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded text-xs transition-colors cursor-pointer ${
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-zinc-800 text-zinc-50 border border-zinc-700'
-                        : 'text-zinc-300 hover:bg-zinc-850 border border-transparent'
+                        ? 'bg-zinc-850 text-zinc-100'
+                        : 'text-zinc-300 hover:bg-zinc-900'
                     }`}
                   >
-                    <div className="p-1.5 rounded bg-zinc-950 border border-zinc-800 shrink-0">
+                    <div className="p-1 rounded bg-zinc-900 text-zinc-300 shrink-0">
                       {act.icon}
                     </div>
-                    <div>
-                      <div className="font-semibold text-zinc-100">{act.title}</div>
-                      <div className="text-[11px] text-zinc-400">{act.subtitle}</div>
+                    <div className="min-w-0">
+                      <div className="font-medium text-zinc-100 truncate">{act.title}</div>
+                      <div className="text-[11px] text-zinc-400 truncate">{act.subtitle}</div>
                     </div>
                   </div>
                 );
@@ -288,20 +293,19 @@ export const CommandPalette: React.FC = () => {
           )}
 
           {totalItems === 0 && (
-            <div className="p-8 text-center text-zinc-500 text-xs">
-              Nenhum projeto ou ação corresponde a "{query}".
+            <div className="p-6 text-center text-zinc-400 text-xs">
+              Nenhum resultado para "{query}".
             </div>
           )}
         </div>
 
         {/* Footer info */}
-        <div className="p-2.5 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
+        <div className="p-2 bg-zinc-950 border-t border-zinc-850 flex items-center justify-between text-[11px] text-zinc-400">
           <div className="flex items-center gap-3">
-            <span>↑↓ para navegar</span>
-            <span>↵ para selecionar</span>
-            <span>ESC para sair</span>
+            <span>↑↓ navegar</span>
+            <span>↵ selecionar</span>
+            <span>ESC fechar</span>
           </div>
-          <span>Crescent Command Palette</span>
         </div>
       </div>
     </div>
