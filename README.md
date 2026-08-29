@@ -2,7 +2,7 @@
 
 O **Crescent** é um aplicativo desktop nativo para Windows projetado para desenvolvedores gerenciarem, rastrearem e organizarem todos os seus projetos de código locais com máxima produtividade, velocidade e inteligência.
 
-- **100% Offline & Privacidade Total:** Sem nuvem obrigatória, sem login, sem telemetria. Todos os dados permanecem salvos no seu computador.
+- **100% Offline & Privacidade Total:** Sem nuvem, sem login, sem telemetria. Todos os dados permanecem salvos no seu computador.
 - **Design System Monocromático Soft Dark:** Estética sólida, nítida e refinada em tons de cinza escuro charcoal (`#121215`, `#1a1a20`), preto e branco (sem glassmorphism, sem blur cansativo).
 - **Stack Tecnológica:** Tauri v2 (Rust) + React 19 (TypeScript, Vite 7) + Tailwind CSS v4 + SQLite local (`rusqlite`) + `@tabler/icons-react`.
 - **Criador:** Emir Lima Neto ([emirln.com](https://emirln.com) | GitHub: [@emireln](https://github.com/emireln) | Apoio: [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)).
