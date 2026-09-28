@@ -172,7 +172,7 @@ pub fn init_db() -> Result<DbState, String> {
         CREATE TABLE IF NOT EXISTS tags (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
-            color TEXT NOT NULL DEFAULT '#3b82f6'
+            color TEXT NOT NULL DEFAULT '#a1a1aa'
         );
 
         CREATE TABLE IF NOT EXISTS project_tags (
@@ -246,6 +246,9 @@ pub fn init_db() -> Result<DbState, String> {
     )
     .map_err(|e| format!("Failed to create tables: {}", e))?;
 
+    ensure_project_is_pinned_column(&conn)?;
+    migrate_ai_model_ids(&conn)?;
+
     // Seed default tags if empty
     let tag_count: i64 = conn
         .query_row("SELECT COUNT(*) FROM tags", [], |r| r.get(0))
@@ -291,6 +294,118 @@ pub fn init_db() -> Result<DbState, String> {
     Ok(DbState {
         conn: Mutex::new(conn),
     })
+}
+
+fn ensure_project_is_pinned_column(conn: &Connection) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare("PRAGMA table_info(projects)")
+        .map_err(|e| e.to_string())?;
+    let columns = stmt
+        .query_map([], |row| row.get::<_, String>(1))
+        .map_err(|e| e.to_string())?;
+    let mut has_is_pinned = false;
+    for column in columns {
+        if column.map_err(|e| e.to_string())? == "is_pinned" {
+            has_is_pinned = true;
+            break;
+        }
+    }
+    drop(stmt);
+
+    if !has_is_pinned {
+        conn.execute(
+            "ALTER TABLE projects ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0",
+            [],
+        )
+        .map_err(|e| format!("Failed to add projects.is_pinned migration: {}", e))?;
+    }
+
+    Ok(())
+}
+
+fn migrate_ai_model_ids(conn: &Connection) -> Result<(), String> {
+    conn.execute(
+        "UPDATE ai_conversations
+         SET model = CASE
+             WHEN provider = 'gemini' AND model = 'gemini-3.1-pro' THEN 'gemini-3.1-pro-preview'
+             WHEN provider = 'claude' AND model = 'claude-5-opus' THEN 'claude-opus-5'
+             WHEN provider = 'claude' AND model = 'claude-5-sonnet' THEN 'claude-sonnet-5'
+             WHEN provider = 'claude' AND model = 'claude-5-fable' THEN 'claude-fable-5'
+             WHEN provider = 'claude' AND model = 'claude-3-7-sonnet-20250219' THEN 'claude-sonnet-4-6'
+             WHEN provider = 'claude' AND model = 'claude-3-5-haiku-20241022' THEN 'claude-haiku-4-5-20251001'
+             WHEN provider = 'deepseek' AND model = 'deepseek-v4-flash' THEN 'deepseek-flash'
+             WHEN provider = 'deepseek' AND model = 'deepseek-reasoner' THEN 'deepseek-v4-pro'
+             WHEN provider = 'deepseek' AND model = 'deepseek-chat' THEN 'deepseek-flash'
+             ELSE model
+         END
+         WHERE (provider = 'gemini' AND model = 'gemini-3.1-pro')
+            OR (provider = 'claude' AND model IN (
+                'claude-5-opus', 'claude-5-sonnet', 'claude-5-fable',
+                'claude-3-7-sonnet-20250219', 'claude-3-5-haiku-20241022'
+            ))
+            OR (provider = 'deepseek' AND model IN (
+                'deepseek-v4-flash', 'deepseek-reasoner', 'deepseek-chat'
+            ))",
+        [],
+    )
+    .map_err(|e| format!("Failed to migrate saved AI model IDs: {}", e))?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod migration_tests {
+    use super::{ensure_project_is_pinned_column, migrate_ai_model_ids};
+    use rusqlite::Connection;
+
+    #[test]
+    fn adds_pinned_column_to_existing_project_tables() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE projects (id TEXT PRIMARY KEY, name TEXT NOT NULL);\
+             INSERT INTO projects (id, name) VALUES ('existing', 'Existing project');",
+        )
+        .unwrap();
+
+        ensure_project_is_pinned_column(&conn).unwrap();
+
+        let is_pinned: i64 = conn
+            .query_row(
+                "SELECT is_pinned FROM projects WHERE id = 'existing'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(is_pinned, 0);
+    }
+
+    #[test]
+    fn updates_saved_conversations_to_current_provider_model_ids() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE ai_conversations (provider TEXT, model TEXT);\
+             INSERT INTO ai_conversations VALUES ('claude', 'claude-3-7-sonnet-20250219');\
+             INSERT INTO ai_conversations VALUES ('deepseek', 'deepseek-chat');\
+             INSERT INTO ai_conversations VALUES ('ollama', 'qwen2.5-coder:latest');",
+        )
+        .unwrap();
+
+        migrate_ai_model_ids(&conn).unwrap();
+
+        let claude_model: String = conn
+            .query_row("SELECT model FROM ai_conversations WHERE provider = 'claude'", [], |row| row.get(0))
+            .unwrap();
+        let deepseek_model: String = conn
+            .query_row("SELECT model FROM ai_conversations WHERE provider = 'deepseek'", [], |row| row.get(0))
+            .unwrap();
+        let ollama_model: String = conn
+            .query_row("SELECT model FROM ai_conversations WHERE provider = 'ollama'", [], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(claude_model, "claude-sonnet-4-6");
+        assert_eq!(deepseek_model, "deepseek-flash");
+        assert_eq!(ollama_model, "qwen2.5-coder:latest");
+    }
 }
 
 pub fn fetch_all_projects(conn: &Connection) -> Result<Vec<Project>, String> {
@@ -1233,5 +1348,3 @@ pub fn update_ai_conversation_model(
     .map_err(|e| format!("Falha ao atualizar modelo da conversa: {}", e))?;
     Ok(())
 }
-
-

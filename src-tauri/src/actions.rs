@@ -4,10 +4,26 @@ use std::path::Path;
 use std::process::Command;
 
 #[cfg(windows)]
+use std::process::Child;
+
+#[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+#[cfg(windows)]
+const CREATE_NEW_CONSOLE: u32 = 0x00000010;
+
+#[cfg(windows)]
+fn spawn_windows_editor(command: &str, path: &str) -> std::io::Result<Child> {
+    let shell_command = format!("{} \"%CRESCENT_PROJECT_PATH%\"", command);
+    Command::new("cmd.exe")
+        .args(["/D", "/C", shell_command.as_str()])
+        .env("CRESCENT_PROJECT_PATH", path)
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScriptExecutionResult {
@@ -26,86 +42,48 @@ pub fn open_editor(path: &str, editor: &str, custom_path: Option<&str>) -> Resul
     {
         match editor {
             "code" => {
-                Command::new("cmd")
-                    .args(["/c", "code", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("code", path)
                     .map_err(|e| format!("Falha ao abrir no VS Code: {}", e))?;
             }
             "cursor" => {
-                Command::new("cmd")
-                    .args(["/c", "cursor", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("cursor", path)
                     .map_err(|e| format!("Falha ao abrir no Cursor: {}", e))?;
             }
             "windsurf" => {
-                Command::new("cmd")
-                    .args(["/c", "windsurf", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("windsurf", path)
                     .map_err(|e| format!("Falha ao abrir no Windsurf: {}", e))?;
             }
             "trae" => {
-                Command::new("cmd")
-                    .args(["/c", "trae", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("trae", path)
                     .map_err(|e| format!("Falha ao abrir no Trae: {}", e))?;
             }
             "kiro" => {
-                Command::new("cmd")
-                    .args(["/c", "kiro", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("kiro", path)
                     .map_err(|e| format!("Falha ao abrir no Kiro: {}", e))?;
             }
             "sublime" => {
-                Command::new("cmd")
-                    .args(["/c", "subl", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("subl", path)
                     .map_err(|e| format!("Falha ao abrir no Sublime Text: {}", e))?;
             }
             "neovim" => {
-                Command::new("cmd")
-                    .args(["/c", "nvim-qt", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
-                    .or_else(|_| {
-                        Command::new("cmd")
-                            .args(["/c", "nvim", path])
-                            .creation_flags(CREATE_NO_WINDOW)
-                            .spawn()
-                    })
+                spawn_windows_editor("nvim-qt", path)
+                    .or_else(|_| spawn_windows_editor("nvim", path))
                     .map_err(|e| format!("Falha ao abrir no Neovim: {}", e))?;
             }
             "zed" => {
-                Command::new("cmd")
-                    .args(["/c", "zed", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("zed", path)
                     .map_err(|e| format!("Falha ao abrir no Zed: {}", e))?;
             }
             "idea" => {
-                Command::new("cmd")
-                    .args(["/c", "idea", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("idea", path)
                     .map_err(|e| format!("Falha ao abrir no IntelliJ IDEA: {}", e))?;
             }
             "webstorm" => {
-                Command::new("cmd")
-                    .args(["/c", "webstorm", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("webstorm", path)
                     .map_err(|e| format!("Falha ao abrir no WebStorm: {}", e))?;
             }
             "pycharm" => {
-                Command::new("cmd")
-                    .args(["/c", "pycharm", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("pycharm", path)
                     .map_err(|e| format!("Falha ao abrir no PyCharm: {}", e))?;
             }
             "custom" => {
@@ -122,10 +100,7 @@ pub fn open_editor(path: &str, editor: &str, custom_path: Option<&str>) -> Resul
             }
             _ => {
                 // Fallback to code
-                Command::new("cmd")
-                    .args(["/c", "code", path])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
+                spawn_windows_editor("code", path)
                     .map_err(|e| format!("Falha ao executar editor: {}", e))?;
             }
         }
@@ -185,15 +160,19 @@ pub fn open_terminal(path: &str, terminal: &str, custom_path: Option<&str>) -> R
                     }
                 }
                 if !spawned {
-                    Command::new("cmd.exe")
-                        .args(["/c", "start", "powershell.exe", "-NoExit", "-Command", &format!("Set-Location -LiteralPath '{}'", path)])
+                    Command::new("powershell.exe")
+                        .args(["-NoExit"])
+                        .current_dir(path)
+                        .creation_flags(CREATE_NEW_CONSOLE)
                         .spawn()
                         .map_err(|e| format!("Falha ao abrir terminal: {}", e))?;
                 }
             }
             "cmd" => {
                 Command::new("cmd.exe")
-                    .args(["/c", "start", "cmd.exe", "/k", &format!("cd /d \"{}\"", path)])
+                    .args(["/K"])
+                    .current_dir(path)
+                    .creation_flags(CREATE_NEW_CONSOLE)
                     .spawn()
                     .map_err(|e| format!("Falha ao abrir CMD: {}", e))?;
             }
@@ -211,8 +190,10 @@ pub fn open_terminal(path: &str, terminal: &str, custom_path: Option<&str>) -> R
             }
             _ => {
                 // Default: PowerShell
-                Command::new("cmd.exe")
-                    .args(["/c", "start", "powershell.exe", "-NoExit", "-Command", &format!("Set-Location -LiteralPath '{}'", path)])
+                Command::new("powershell.exe")
+                    .args(["-NoExit"])
+                    .current_dir(path)
+                    .creation_flags(CREATE_NEW_CONSOLE)
                     .spawn()
                     .map_err(|e| format!("Falha ao abrir PowerShell: {}", e))?;
             }
@@ -263,21 +244,7 @@ pub fn open_explorer(path: &str) -> Result<(), String> {
 }
 
 pub fn open_browser_url(url: &str) -> Result<(), String> {
-    #[cfg(windows)]
-    {
-        Command::new("cmd")
-            .args(["/c", "start", "", url])
-            .creation_flags(CREATE_NO_WINDOW)
-            .spawn()
-            .map_err(|e| format!("Falha ao abrir navegador: {}", e))?;
-    }
-
-    #[cfg(not(windows))]
-    {
-        let _ = open::that(url);
-    }
-
-    Ok(())
+    open::that(url).map_err(|e| format!("Falha ao abrir navegador: {}", e))
 }
 
 pub fn read_project_readme(path: &str) -> Option<String> {

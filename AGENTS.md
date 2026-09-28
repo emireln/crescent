@@ -7,7 +7,7 @@ Este documento fornece a visão geral de arquitetura, padrões de código, conve
 ## 1. Visão Geral do Projeto
 
 O **Crescent** é um aplicativo desktop nativo para Windows projetado para alta produtividade, rastreamento e organização de projetos de código espalhados pelo computador.
-- **100% Offline:** Sem nuvem obrigatória, sem login, sem telemetria.
+- **Núcleo Local:** Sem login ou telemetria. O gerenciamento de projetos funciona localmente; a IA pode usar Ollama local ou um provedor em nuvem configurado pelo usuário.
 - **Idioma Padrão:** Português do Brasil (PT-BR).
 - **Design System:** Estritamente monocromático (preto, branco e escala neutra de cinzas zinc), sólido, nítido e sem glassmorphism/blur.
 - **Criador e Mantenedor:** Emir Lima Neto ([emirln.com](https://emirln.com) | GitHub: [@emireln](https://github.com/emireln) | Apoio: [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)).
@@ -118,7 +118,7 @@ crescent/
         ├── main.rs              # Ponto de entrada desktop
         ├── lib.rs               # Registro central de todos os handlers IPC e inicialização do DB
         ├── db.rs                # Camada SQLite, migrações e operações CRUD completas
-        ├── ai.rs                # Gateway Multi-LLM, RAG de alta densidade e detecção Ollama
+        ├── ai.rs                # Gateway Multi-LLM, contexto local limitado e detecção Ollama
         ├── scanner.rs           # Motor de varredura recursiva e detector amplo de linguagens/stacks
         ├── git.rs               # Rastreamento de branches, status dirty, ahead/behind e heatmap
         ├── port_sentinel.rs     # Monitoramento TCP ativo e encerramento forçado de processos (kill)

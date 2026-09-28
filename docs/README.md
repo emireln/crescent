@@ -2,7 +2,7 @@
 
 Eu criei o **Crescent** para resolver um problema real que enfrentei diariamente como desenvolvedor: a desorganização e perda de contexto ao gerenciar dezenas de projetos e repositórios de código espalhados pelo computador.
 
-Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigatório, consomem gigabytes de memória RAM ou utilizam interfaces poluídas e lentas. O Crescent foi construído do zero para ser o oposto: **100% offline, ultrarrápido, nativo para Windows e estritamente focado em produtividade.**
+Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigatório, consomem gigabytes de memória RAM ou utilizam interfaces poluídas e lentas. O Crescent foi construído como um aplicativo nativo para Windows, com gerenciamento de projetos local, sem login ou telemetria. O chat de IA funciona com Ollama local ou com provedores em nuvem configurados pelo usuário.
 
 ---
 
@@ -24,7 +24,7 @@ Muitas vezes, ferramentas existentes exigem conexão com a nuvem, login obrigat�
 ### Origem da Ideia
 A ideia e o início do Crescent vieram de outros projetos e da dificuldade real que eu sempre tive de administrar a quantidade massiva de projetos e repositórios espalhados pelo meu computador. Encontrar repositórios rapidamente, checar branches pendentes, lembrar comandos de setup e abrir portas locais consumia tempo e quebrava o fluxo de foco.
 
-Eu usei este projeto tanto para criar a ferramenta dos meus sonhos quanto para **ampliar, testar e consolidar os meus conhecimentos técnicos** em desenvolvimento desktop nativo com Rust, Tauri v2, SQLite local de alta performance, RAG e engenharia de software moderna.
+Eu usei este projeto tanto para criar a ferramenta dos meus sonhos quanto para **ampliar, testar e consolidar os meus conhecimentos técnicos** em desenvolvimento desktop nativo com Rust, Tauri v2, SQLite local de alta performance, contexto local de projetos e engenharia de software moderna.
 
 ### Desenvolvimento com Auxílio de IA (0x Alpha)
 Este aplicativo foi desenvolvido em parceria técnica com auxílio de um **Agente de IA (modelo: 0x Alpha)**, combinando minha visão de produto, arquitetura de sistemas e design system monocromático estrito com a velocidade de implementação e automação do agente para refatorações, scripts de compilação e integração com o ecossistema local.
@@ -46,7 +46,7 @@ Quando planejei o projeto, a escolha das tecnologias foi guiada por performance,
 | Camada | Tecnologia | Por que escolhi? |
 |---|---|---|
 | **Backend Desktop** | **Tauri v2 (Rust)** | Permite criar um aplicativo nativo extremamente leve, com binário compacto, consumo mínimo de memória RAM, comunicação IPC segura e controle completo sobre janelas sem moldura (`frameless`) no Windows. |
-| **Banco de Dados Local** | **SQLite (`rusqlite`)** | Armazenamento 100% offline em `%AppData%/Crescent/crescent.db`. Transações ACID, integridade referencial com chaves estrangeiras, migrações automáticas e suporte a backup em JSON. |
+| **Banco de Dados Local** | **SQLite (`rusqlite`)** | Armazenamento local em `%AppData%/Crescent/crescent.db`. Transações ACID, integridade referencial com chaves estrangeiras, migrações automáticas e suporte a backup em JSON. |
 | **Frontend Reativo** | **React 19 + TypeScript** | Componentização modular, tipagem estática rigorosa e ecossistema moderno. |
 | **Bundler & Tooling** | **Vite 7** | Hot Module Replacement (HMR) instantâneo durante o desenvolvimento e builds de produção otimizados. |
 | **Estilização** | **Tailwind CSS v4** | Utilitários de CSS sem overhead, compilados sob demanda. |

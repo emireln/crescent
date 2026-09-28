@@ -27,6 +27,8 @@ export const AiChatModal: React.FC = () => {
     projects,
     aiActiveProjectId,
     setAiActiveProjectId,
+    aiInitialPrompt,
+    setAiInitialPrompt,
   } = useProjects();
 
   const [conversations, setConversations] = useState<AiConversation[]>([]);
@@ -42,15 +44,26 @@ export const AiChatModal: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const conversationLoadId = useRef(0);
 
   // Load conversations when opened or when active project filter changes
   useEffect(() => {
     if (isAiChatOpen) {
+      setActiveConversation(null);
+      setConversations([]);
+      setMessages([]);
       loadConversations();
       detectOllamaModels();
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isAiChatOpen, aiActiveProjectId]);
+
+  useEffect(() => {
+    if (isAiChatOpen && aiInitialPrompt) {
+      setInputValue(aiInitialPrompt);
+      setAiInitialPrompt(null);
+    }
+  }, [isAiChatOpen, aiInitialPrompt, setAiInitialPrompt]);
 
   // Load messages when active conversation changes
   useEffect(() => {
@@ -71,14 +84,16 @@ export const AiChatModal: React.FC = () => {
   }, [messages, sending]);
 
   const loadConversations = async () => {
+    const loadId = ++conversationLoadId.current;
     try {
       const convs = await api.getAiConversations(aiActiveProjectId);
+      if (loadId !== conversationLoadId.current) return;
       setConversations(convs);
-      if (convs.length > 0 && !activeConversation) {
-        setActiveConversation(convs[0]);
-      }
+      setActiveConversation(convs[0] ?? null);
     } catch (err) {
-      console.error('Erro ao carregar conversas de IA:', err);
+      if (loadId === conversationLoadId.current) {
+        console.error('Erro ao carregar conversas de IA:', err);
+      }
     }
   };
 
@@ -156,8 +171,8 @@ export const AiChatModal: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    const text = inputValue.trim();
+  const handleSendMessage = async (message = inputValue) => {
+    const text = message.trim();
     if (!text || sending) return;
 
     let targetConv = activeConversation;
@@ -276,13 +291,13 @@ export const AiChatModal: React.FC = () => {
             {/* Scope Selector */}
             <div className="p-2.5 bg-zinc-950/40">
               <label className="block text-[10px] uppercase tracking-wider text-zinc-500 font-semibold mb-1.5">
-                Escopo de Contexto RAG
+                Escopo do Contexto
               </label>
               <CustomSelect
                 value={aiActiveProjectId || ''}
                 onChange={v => setAiActiveProjectId(v || null)}
                 options={[
-                  { value: '', label: `Todos os Projetos (${projects.length})` },
+                  { value: '', label: `Visão Global (até 50 projetos)` },
                   ...projects.map(p => ({
                     value: p.id,
                     label: `${p.name} (${p.primary_tech})`,
@@ -426,7 +441,7 @@ export const AiChatModal: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-xs text-zinc-500 font-mono">
-                  Contexto Global ({projects.length} repositórios)
+                  Contexto Global (até 50 projetos)
                 </div>
               )}
 
@@ -450,7 +465,7 @@ export const AiChatModal: React.FC = () => {
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-zinc-100">Como posso ajudar nos seus projetos?</h3>
                   <p className="text-xs text-zinc-400">
-                    O Crescent AI possui acesso contextual completo às suas linguagens, portas, anotações e arquivos de manifesto locais.
+                    O assistente usa metadados dos projetos cadastrados. Ao selecionar um projeto, também inclui suas anotações, portas, scripts e um trecho do README.
                   </p>
                 </div>
 
@@ -466,8 +481,7 @@ export const AiChatModal: React.FC = () => {
                       key={prompt}
                       type="button"
                       onClick={() => {
-                        setInputValue(prompt);
-                        setTimeout(() => handleSendMessage(), 50);
+                        void handleSendMessage(prompt);
                       }}
                       className="p-2.5 text-left bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 rounded text-xs text-zinc-300 hover:text-zinc-100 transition-colors"
                     >
@@ -553,7 +567,7 @@ export const AiChatModal: React.FC = () => {
               />
               <button
                 type="button"
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim() || sending}
                 className="p-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 text-zinc-950 rounded-md transition-colors shrink-0 font-medium cursor-pointer"
                 title="Enviar Mensagem"
@@ -563,7 +577,7 @@ export const AiChatModal: React.FC = () => {
             </div>
             <div className="flex items-center justify-between pt-2 text-[10px] text-zinc-500 font-mono">
               <span>Shift + Enter para nova linha</span>
-              <span>RAG: Indexação de alta densidade ativada</span>
+              <span>Contexto local dos projetos habilitado</span>
             </div>
           </div>
         </div>

@@ -157,12 +157,12 @@ export const SettingsModal: React.FC = () => {
               </div>
             </div>
 
-            {/* High Density Token Optimizer Toggle */}
+            {/* Preferências de estilo das respostas */}
             <div className="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
               <div className="space-y-0.5">
-                <div className="text-xs font-semibold text-zinc-200">Modo Alta Densidade (Otimizador de Tokens / Caveman)</div>
+                <div className="text-xs font-semibold text-zinc-200">Respostas técnicas e objetivas</div>
                 <div className="text-[11px] text-zinc-400">
-                  Comprime prompts, remove formalismos e gera respostas técnicas concisas com economia de até 60% em tokens.
+                  Solicita respostas diretas em Português do Brasil, com menos formalismos e foco técnico.
                 </div>
               </div>
               <input

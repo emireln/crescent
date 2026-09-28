@@ -7,7 +7,7 @@ Neste documento, estão descritos em detalhes a arquitetura interna do **Crescen
 ## 1. Visão Geral da Arquitetura
 
 O Crescent opera como uma aplicação desktop híbrida utilizando o **Tauri v2**:
-- **Backend (Rust):** Responsável pelo acesso ao sistema de arquivos local, execução de processos externos (IDEs, terminais, scripts), controle de janelas nativas, monitoramento do Git, gerenciamento de portas TCP, limpeza de disco, busca global de código, gerador de projetos, inspetor de `.env`, gateway multi-LLMs com RAG de alta densidade e banco de dados SQLite local.
+- **Backend (Rust):** Responsável pelo acesso ao sistema de arquivos local, execução de processos externos (IDEs, terminais, scripts), controle de janelas nativas, monitoramento do Git, gerenciamento de portas TCP, limpeza de disco, busca global de código, gerador de projetos, inspetor de `.env`, gateway multi-LLMs com contexto local limitado e banco de dados SQLite local.
 - **Frontend (React 19 + TypeScript):** Responsável por toda a renderização da interface reativa, componentes modulares, atalhos de teclado e apresentação dos dados.
 - **Camada de Comunicação (IPC Tauri):** Todas as chamadas entre React e Rust acontecem através de comandos assíncronos registrados com a macro `#[tauri::command]`.
 
@@ -17,7 +17,7 @@ graph TD
     
     subgraph "Backend Rust (Tauri v2)"
         IPC <--> DB[(SQLite: %AppData%/Crescent/crescent.db)]
-        IPC <--> AI[Crescent AI: Multi-LLM Gateway & RAG Engine]
+        IPC <--> AI[Crescent AI: Multi-LLM Gateway & Project Context]
         IPC <--> Scanner[Motor de Varredura & Linguist]
         IPC <--> Sentinel[Port Sentinel & Process Killer]
         IPC <--> Cleaner[Disk Cleaner & Pruner]
@@ -160,14 +160,11 @@ CREATE TABLE IF NOT EXISTS settings (
 ### 3.1. Crescent AI Assistant & Multi-LLM Gateway (`src-tauri/src/ai.rs`)
 - **Provedores Suportados:**
   - **Ollama:** Execução local via `http://localhost:11434` com auto-descoberta de modelos instalados (`/api/tags`).
-  - **Google Gemini:** `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`.
-  - **OpenAI:** `gpt-4.5-preview`, `gpt-4o`, `gpt-4o-mini`, `o3-mini`, `o1`.
-  - **DeepSeek:** `deepseek-chat` (V3) e `deepseek-reasoner` (R1).
-  - **Anthropic Claude:** `claude-3-7-sonnet-20250219`, `claude-3-5-haiku-20241022`, `claude-3-opus-20240229`.
-- **RAG & High-Density Token Optimizer:**
-  - Injeta contexto enxuto com nomes, caminhos, stacks, branches Git e portas de todos os repositórios.
-  - Para projetos em foco, insere manifestos de dependência, anotações e README.
-  - Instruções de alta densidade técnica (estilo *caveman / zero fluff*) para reduzir latência e economizar até 60% de tokens.
+- **Modelos em destaque no catálogo da interface:** Gemini 3.8 Flash, 3.7 Flash, 3.1 Pro Preview e 2.5 Pro; OpenAI GPT-5.6 Sol/Terra/Luna, GPT-4o e modelos de raciocínio; DeepSeek V4 Pro e V4.1 Flash; Claude Opus 5, Sonnet 5, Fable 5, Sonnet 4.6 e Haiku 4.5. Ollama lista dinamicamente os modelos instalados.
+- **Contexto do Projeto (sem indexação de código):**
+  - A visão global inclui metadados de até 50 projetos cadastrados.
+  - Com um projeto selecionado, o contexto adiciona anotações, portas e scripts cadastrados, até 8.000 caracteres iniciais do README, manifestos locais reconhecidos limitados a 24.000 caracteres no total (até 6.000 por arquivo) e até 80 itens da estrutura de primeiro nível.
+  - O contexto não indexa nem pesquisa automaticamente o código-fonte. Conversas são salvas localmente; ao usar um provedor em nuvem, mensagens e contexto são enviados ao serviço configurado.
 - **Troca Dinâmica de Modelos:** Permite alternar de provedor/modelo no meio da conversa mantendo o histórico de mensagens e memória do SQLite.
 
 ### 3.2. Port Sentinel (`src-tauri/src/port_sentinel.rs`)

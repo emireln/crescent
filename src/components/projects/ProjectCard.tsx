@@ -18,6 +18,7 @@ import {
 import { Project } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
+import { getMonochromeTagColor } from '../../utils/colors';
 import { api } from '../../services/api';
 import { EditorIcon } from '../common/EditorIcons';
 
@@ -216,7 +217,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               key={tag.id}
               className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-300"
             >
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: getMonochromeTagColor(tag.color) }} />
               <span>#{tag.name}</span>
             </span>
           ))}

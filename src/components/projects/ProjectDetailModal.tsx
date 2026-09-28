@@ -35,6 +35,7 @@ import {
 import { ScriptExecutionResult, GitCommitSummary, EnvFileInfo } from '../../types';
 import { useProjects } from '../../context/ProjectContext';
 import { formatBytes, formatRelativeTime, getStatusBadge, getTechColor } from '../../utils/formatters';
+import { getMonochromeTagColor } from '../../utils/colors';
 import { api } from '../../services/api';
 import { EditorIcon } from '../common/EditorIcons';
 import { CustomSelect } from '../common/CustomSelect';
@@ -64,6 +65,7 @@ export const ProjectDetailModal: React.FC = () => {
     killPort,
     setIsAiChatOpen,
     setAiActiveProjectId,
+    setAiInitialPrompt,
   } = useProjects();
 
   if (!activeProject) return null;
@@ -478,7 +480,7 @@ export const ProjectDetailModal: React.FC = () => {
                               : 'bg-zinc-850 text-zinc-400 hover:text-zinc-200'
                           }`}
                         >
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getMonochromeTagColor(tag.color) }} />
                           <span>#{tag.name}</span>
                         </button>
                       );
@@ -968,7 +970,7 @@ export const ProjectDetailModal: React.FC = () => {
                     <span>Crescent AI Contextualizado: {activeProject.name}</span>
                   </div>
                   <p className="text-xs text-zinc-400">
-                    O assistente tem acesso direto aos manifestos, notas, portas e README deste repositório via RAG local.
+                    O contexto inclui metadados, notas, portas, scripts, um trecho do README, manifestos reconhecidos e a estrutura de primeiro nível.
                   </p>
                 </div>
                 <button
@@ -988,24 +990,29 @@ export const ProjectDetailModal: React.FC = () => {
                 {[
                   {
                     title: 'Auditar Segurança & Dependências',
-                    desc: 'Analisa o manifesto do projeto para encontrar versões desatualizadas ou problemas.',
+                    desc: 'Revise os manifestos locais e destaque riscos, dependências e verificações que ainda exigem dados atuais.',
+                    prompt: 'Analise os manifestos fornecidos no contexto deste projeto. Identifique dependências diretas, versões, riscos visíveis e verificações de segurança que seriam necessárias. Não afirme que uma versão está desatualizada ou vulnerável sem dados atuais; deixe claro o que não pode ser confirmado apenas pelos arquivos locais.',
                   },
                   {
                     title: 'Gerar Scripts de Deploy / CI/CD',
-                    desc: 'Cria workflows de GitHub Actions ou Dockerfile adaptados à stack do projeto.',
+                    desc: 'Sugere uma base de CI/CD a partir da stack, dos manifestos e dos scripts cadastrados.',
+                    prompt: 'Proponha um workflow de CI/CD adequado à stack e aos manifestos fornecidos no contexto deste projeto. Use os scripts locais disponíveis e sinalize suposições quando não houver informações suficientes. Apresente o arquivo completo e explique como ajustá-lo para deploy.',
                   },
                   {
                     title: 'Explicar Arquitetura & Fluxo',
-                    desc: 'Resume a estrutura do projeto e pontos de entrada do código.',
+                    desc: 'Resume a stack, os manifestos e a estrutura de primeiro nível disponível.',
+                    prompt: 'Explique a arquitetura deste projeto somente com base nos metadados, README, manifestos e estrutura de primeiro nível fornecidos. Separe fatos de inferências e peça os arquivos-fonte específicos que seriam necessários para detalhar o fluxo de execução.',
                   },
                   {
                     title: 'Otimizar Performance & Build',
-                    desc: 'Sugere flags de compilação, linkers rápidos e técnicas de bundle splitting.',
+                    desc: 'Avalia scripts e manifestos e sugere otimizações compatíveis com as ferramentas detectadas.',
+                    prompt: 'Analise os scripts e manifestos fornecidos para identificar oportunidades concretas de melhorar build e performance. Priorize sugestões compatíveis com as ferramentas detectadas, explique impactos e riscos, e não invente medições que não foram fornecidas.',
                   },
                 ].map(card => (
                   <div
                     key={card.title}
                     onClick={() => {
+                      setAiInitialPrompt(card.prompt);
                       setAiActiveProjectId(activeProject.id);
                       setIsAiChatOpen(true);
                     }}

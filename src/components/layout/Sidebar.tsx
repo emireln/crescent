@@ -25,6 +25,7 @@ import {
 import { useProjects } from '../../context/ProjectContext';
 import { FilterCategory } from '../../types';
 import { Tooltip } from '../common/Tooltip';
+import { DEFAULT_TAG_COLOR, getMonochromeTagColor, TAG_COLOR_OPTIONS } from '../../utils/colors';
 
 import { api } from '../../services/api';
 
@@ -61,7 +62,7 @@ export const Sidebar: React.FC = () => {
 
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('#a1a1aa');
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_TAG_COLOR);
   const [editingTag, setEditingTag] = useState<{ id: string; name: string; color: string } | null>(null);
 
   // Load from SQLite on mount
@@ -92,7 +93,7 @@ export const Sidebar: React.FC = () => {
     try {
       await createTag(newTagName.trim(), newTagColor);
       setNewTagName('');
-      setNewTagColor('#a1a1aa');
+      setNewTagColor(DEFAULT_TAG_COLOR);
       setIsAddingTag(false);
     } catch (err) {
       console.error(err);
@@ -454,17 +455,7 @@ export const Sidebar: React.FC = () => {
                 <div>
                   <span className="block text-[10px] text-zinc-400 mb-1.5 font-medium">Cor da Tag:</span>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {[
-                      { name: 'Zinc', hex: '#a1a1aa' },
-                      { name: 'Azul', hex: '#60a5fa' },
-                      { name: 'Esmeralda', hex: '#34d399' },
-                      { name: 'Âmbar', hex: '#f59e0b' },
-                      { name: 'Vermelho', hex: '#f87171' },
-                      { name: 'Roxo', hex: '#c084fc' },
-                      { name: 'Ciano', hex: '#38bdf8' },
-                      { name: 'Rosa', hex: '#f472b6' },
-                      { name: 'Lima', hex: '#a3e635' },
-                    ].map(c => (
+                    {TAG_COLOR_OPTIONS.map(c => (
                       <button
                         key={c.hex}
                         type="button"
@@ -513,7 +504,7 @@ export const Sidebar: React.FC = () => {
                     return (
                       <form key={tag.id} onSubmit={handleUpdateTag} className="p-2.5 mb-1.5 bg-zinc-900 rounded-lg space-y-2.5">
                         <div className="flex items-center gap-2 bg-zinc-950 px-2.5 py-1.5 rounded">
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: editingTag.color }} />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: getMonochromeTagColor(editingTag.color) }} />
                           <input
                             type="text"
                             value={editingTag.name}
@@ -527,17 +518,7 @@ export const Sidebar: React.FC = () => {
                         <div>
                           <span className="block text-[10px] text-zinc-400 mb-1.5 font-medium">Cor da Tag:</span>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            {[
-                              { name: 'Zinc', hex: '#a1a1aa' },
-                              { name: 'Azul', hex: '#60a5fa' },
-                              { name: 'Esmeralda', hex: '#34d399' },
-                              { name: 'Âmbar', hex: '#f59e0b' },
-                              { name: 'Vermelho', hex: '#f87171' },
-                              { name: 'Roxo', hex: '#c084fc' },
-                              { name: 'Ciano', hex: '#38bdf8' },
-                              { name: 'Rosa', hex: '#f472b6' },
-                              { name: 'Lima', hex: '#a3e635' },
-                            ].map(c => (
+                            {TAG_COLOR_OPTIONS.map(c => (
                               <button
                                 key={c.hex}
                                 type="button"
@@ -595,7 +576,7 @@ export const Sidebar: React.FC = () => {
                         className="flex items-center gap-2 flex-1 text-left truncate cursor-pointer"
                         title={`Filtrar pela tag #${tag.name}`}
                       >
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tag.color || '#a1a1aa' }} />
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getMonochromeTagColor(tag.color) }} />
                         <span className="text-zinc-500 font-mono text-[11px]">#</span>
                         <span className="truncate">{tag.name}</span>
                       </button>
@@ -605,7 +586,7 @@ export const Sidebar: React.FC = () => {
                           onClick={e => {
                             e.stopPropagation();
                             setIsAddingTag(false);
-                            setEditingTag({ id: tag.id, name: tag.name, color: tag.color || '#a1a1aa' });
+                            setEditingTag({ id: tag.id, name: tag.name, color: getMonochromeTagColor(tag.color) });
                           }}
                           className="text-zinc-400 hover:text-zinc-200 p-0.5 cursor-pointer"
                           title="Alterar Cor da Tag"

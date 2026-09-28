@@ -3,6 +3,18 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+const CLEANABLE_TARGETS: [(&str, &str); 9] = [
+    ("node_modules", "node_modules"),
+    ("target", "target"),
+    (".venv", ".venv"),
+    ("venv", "venv"),
+    (".next", ".next"),
+    (".nuxt", ".nuxt"),
+    (".turbo", ".turbo"),
+    ("dist", "dist"),
+    ("build", "build"),
+];
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CleanableItem {
     pub category: String, // "node_modules", "target", ".venv", ".next", "dist/build"
@@ -47,19 +59,7 @@ pub fn analyze_project_cleanable(
         };
     }
 
-    let targets = [
-        ("node_modules", "node_modules"),
-        ("target", "target"),
-        (".venv", ".venv"),
-        ("venv", "venv"),
-        (".next", ".next"),
-        (".nuxt", ".nuxt"),
-        (".turbo", ".turbo"),
-        ("dist", "dist"),
-        ("build", "build"),
-    ];
-
-    for (cat, rel) in targets {
+    for (cat, rel) in CLEANABLE_TARGETS {
         let full = p.join(rel);
         if full.exists() && full.is_dir() {
             let size = calculate_dir_size_exact(&full);
@@ -84,7 +84,7 @@ pub fn analyze_project_cleanable(
     }
 }
 
-pub fn clean_selected_paths(paths: Vec<String>) -> CleanResult {
+pub fn clean_selected_paths(paths: Vec<String>, project_roots: &[String]) -> CleanResult {
     let mut bytes_freed = 0;
     let mut cleaned_count = 0;
     let mut errors = Vec::new();
@@ -92,6 +92,11 @@ pub fn clean_selected_paths(paths: Vec<String>) -> CleanResult {
     for path_str in paths {
         let p = PathBuf::from(&path_str);
         if p.exists() {
+            if !is_permitted_clean_target(&p, project_roots) {
+                errors.push(format!("Caminho não permitido para limpeza: {}", path_str));
+                continue;
+            }
+
             let size = calculate_dir_size_exact(&p);
             match fs::remove_dir_all(&p) {
                 Ok(_) => {
@@ -113,6 +118,39 @@ pub fn clean_selected_paths(paths: Vec<String>) -> CleanResult {
     }
 }
 
+fn is_permitted_clean_target(path: &Path, project_roots: &[String]) -> bool {
+    let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    let file_name = file_name.to_ascii_lowercase();
+    if !CLEANABLE_TARGETS
+        .iter()
+        .any(|(_, target)| *target == file_name)
+    {
+        return false;
+    }
+
+    let Ok(metadata) = fs::symlink_metadata(path) else {
+        return false;
+    };
+    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        return false;
+    }
+
+    let Ok(canonical_target) = path.canonicalize() else {
+        return false;
+    };
+    let Some(target_parent) = canonical_target.parent() else {
+        return false;
+    };
+
+    project_roots.iter().any(|root| {
+        Path::new(root)
+            .canonicalize()
+            .is_ok_and(|canonical_root| canonical_root == target_parent)
+    })
+}
+
 fn calculate_dir_size_exact(path: &Path) -> u64 {
     let mut total = 0;
     for entry in WalkDir::new(path).into_iter().flatten() {
@@ -123,4 +161,38 @@ fn calculate_dir_size_exact(path: &Path) -> u64 {
         }
     }
     total
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_permitted_clean_target;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn only_allows_known_cleanup_folders_at_registered_project_roots() {
+        let unique_id = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let temp_root = std::env::temp_dir().join(format!(
+            "crescent-cleaner-{}-{}",
+            std::process::id(),
+            unique_id
+        ));
+        let project_root = temp_root.join("project");
+        let allowed = project_root.join("node_modules");
+        let nested = project_root.join("important");
+        let unrelated = temp_root.join("other").join("dist");
+        fs::create_dir_all(&allowed).unwrap();
+        fs::create_dir_all(&nested).unwrap();
+        fs::create_dir_all(&unrelated).unwrap();
+
+        let project_roots = vec![project_root.to_string_lossy().to_string()];
+        assert!(is_permitted_clean_target(&allowed, &project_roots));
+        assert!(!is_permitted_clean_target(&nested, &project_roots));
+        assert!(!is_permitted_clean_target(&unrelated, &project_roots));
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
 }

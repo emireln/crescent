@@ -2,7 +2,7 @@
 
 O **Crescent** é um aplicativo desktop nativo para Windows projetado para desenvolvedores gerenciarem, rastrearem e organizarem todos os seus projetos de código locais.
 
-- **100% Offline & Privacidade Total:** Sem nuvem, sem login, sem telemetria. Todos os dados permanecem salvos no seu computador.
+- **Núcleo Local e Privado:** Sem login ou telemetria. O gerenciamento funciona localmente; a IA usa Ollama local ou pode enviar prompts e contexto ao provedor em nuvem que o usuário configurar.
 - **Design System Monocromático Soft Dark:** Estética sólida, nítida e refinada em tons de cinza escuro charcoal (`#121215`, `#1a1a20`), preto e branco (sem glassmorphism, sem blur cansativo).
 - **Stack:** Tauri v2 (Rust) + React 19 (TypeScript, Vite 7) + Tailwind CSS v4 + SQLite local (`rusqlite`) + `@tabler/icons-react`.
 - **Criador:** Emir Lima Neto ([emirln.com](https://emirln.com) | GitHub: [@emireln](https://github.com/emireln) | Apoio: [buymeacoffee.com/emireln](https://buymeacoffee.com/emireln)).
@@ -11,7 +11,7 @@ O **Crescent** é um aplicativo desktop nativo para Windows projetado para desen
 
 ## Origem do Projeto & Desenvolvimento
 
-A ideia do Crescent nasceu da minha própria necessidade e dificuldade de administrar dezenas de projetos de código espalhados pelo computador. Eu utilizei este projeto para criar a solução definitiva para o meu fluxo de trabalho diário e para **testar e ampliar os meus conhecimentos práticos** em Rust, Tauri v2, SQLite local de alto desempenho, RAG local e engenharia de software moderna.
+A ideia do Crescent nasceu da minha própria necessidade e dificuldade de administrar dezenas de projetos de código espalhados pelo computador. Eu utilizei este projeto para criar a solução definitiva para o meu fluxo de trabalho diário e para **testar e ampliar os meus conhecimentos práticos** em Rust, Tauri v2, SQLite local de alto desempenho, contexto local de projetos e engenharia de software moderna.
 
 O desenvolvimento do aplicativo teve auxílio de um **Agente de IA (modelo: OxAlpha)** em regime de pair programming técnico. Projeto focado em Rust e Tauri (Fiz enquanto estudava essa linguagem).
 
@@ -20,7 +20,7 @@ O desenvolvimento do aplicativo teve auxílio de um **Agente de IA (modelo: OxAl
 ## Funcionalidades Principais
 
 - **Descoberta & Varredura Automática:** Detecção recursiva multi-nível de repositórios e projetos (Rust, Node/TypeScript, React, Next.js, Vue, Python, FastAPI, Go, .NET, Java, PHP, Flutter, Docker).
-- **Crescent AI Assistant (Multi-LLM Gateway):** Chat contextual com inteligência artificial (`Ctrl + J`) integrado a Ollama local (auto-detecção de modelos instalados) e provedores em nuvem (Gemini, OpenAI, DeepSeek, Claude) com memória contínua e RAG de alta densidade técnica.
+- **Crescent AI Assistant (Multi-LLM Gateway):** Chat contextual (`Ctrl + J`) integrado ao Ollama local e, opcionalmente, a Gemini, OpenAI, DeepSeek ou Claude. O contexto inclui metadados dos projetos e, para o projeto selecionado, anotações, scripts, portas, trecho do README, manifestos reconhecidos e estrutura de primeiro nível. Conversas ficam no banco local; ao selecionar um provedor em nuvem, as mensagens e o contexto são enviados a esse serviço.
 - **Busca Global de Código nos Repositórios (`Ctrl + Shift + F`):** Motor de busca textual ultrarrápido (Grep em Rust) através de todos os projetos cadastrados.
 - **Port Sentinel & Finalizador de Processos:** Monitoramento de portas TCP ativas (`localhost:3000`, `5173`, etc.) com identificação do processo responsável e encerramento seguro (*kill*) com 1 clique.
 - **Limpador de Disco & Purga de Dependências:** Análise do espaço ocupado por `node_modules`, `target/`, `.venv`, `.next` e builds para liberação em lote de dezenas de gigabytes.

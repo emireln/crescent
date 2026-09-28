@@ -13,6 +13,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { api } from '../../services/api';
 import { ProjectTemplate } from '../../types';
 import { getTechColor } from '../../utils/formatters';
+import { getMonochromeTagColor } from '../../utils/colors';
 import { CustomSelect } from '../common/CustomSelect';
 
 type Mode = 'existing' | 'template';
@@ -364,7 +365,7 @@ export const NewProjectModal: React.FC = () => {
                           : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.color || '#a1a1aa' }} />
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getMonochromeTagColor(t.color) }} />
                       <span>#{t.name}</span>
                     </button>
                   );

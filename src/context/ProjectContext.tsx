@@ -59,6 +59,8 @@ interface ProjectContextType {
   setIsAiChatOpen: (open: boolean) => void;
   aiActiveProjectId: string | null;
   setAiActiveProjectId: (id: string | null) => void;
+  aiInitialPrompt: string | null;
+  setAiInitialPrompt: (prompt: string | null) => void;
 
   // Port Sentinel
   portStatuses: Record<number, PortStatusInfo>;
@@ -196,6 +198,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isCodeSearchOpen, setIsCodeSearchOpen] = useState(false);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [aiActiveProjectId, setAiActiveProjectId] = useState<string | null>(null);
+  const [aiInitialPrompt, setAiInitialPrompt] = useState<string | null>(null);
 
   const refreshProjects = useCallback(async () => {
     try {
@@ -349,7 +352,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Category Filter
-        if (selectedCategory === 'favorites' && !p.is_favorite) return false;
+        if (selectedCategory === 'favorites' && !p.is_favorite && !p.is_pinned) return false;
         if (selectedCategory === 'active' && p.status !== 'active') return false;
         if (selectedCategory === 'on_hold' && p.status !== 'on_hold') return false;
         if (selectedCategory === 'completed' && p.status !== 'completed') return false;
@@ -392,7 +395,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const stats = useMemo(() => {
     return {
       total: projects.length,
-      favorites: projects.filter(p => p.is_favorite).length,
+      favorites: projects.filter(p => p.is_favorite || p.is_pinned).length,
       active: projects.filter(p => p.status === 'active').length,
       onHold: projects.filter(p => p.status === 'on_hold').length,
       completed: projects.filter(p => p.status === 'completed').length,
@@ -610,6 +613,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsAiChatOpen,
         aiActiveProjectId,
         setAiActiveProjectId,
+        aiInitialPrompt,
+        setAiInitialPrompt,
         portStatuses,
         refreshPortStatuses,
         killPort,

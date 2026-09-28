@@ -328,8 +328,23 @@ fn analyze_cleanable(
 }
 
 #[tauri::command]
-fn clean_project_targets(paths: Vec<String>) -> CleanResult {
-    clean_selected_paths(paths)
+fn clean_project_targets(
+    state: State<DbState>,
+    paths: Vec<String>,
+) -> Result<CleanResult, String> {
+    let project_roots = {
+        let conn = state.conn.lock().map_err(|e| e.to_string())?;
+        let mut stmt = conn
+            .prepare("SELECT path FROM projects")
+            .map_err(|e| e.to_string())?;
+        let rows = stmt
+            .query_map([], |row| row.get::<_, String>(0))
+            .map_err(|e| e.to_string())?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?
+    };
+
+    Ok(clean_selected_paths(paths, &project_roots))
 }
 
 #[tauri::command]

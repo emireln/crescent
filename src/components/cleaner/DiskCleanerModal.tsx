@@ -23,13 +23,13 @@ export const DiskCleanerModal: React.FC = () => {
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [cleanResult, setCleanResult] = useState<CleanResult | null>(null);
 
-  const scanAllProjects = async () => {
+  const scanAllProjects = async (clearResult = true) => {
     setLoading(true);
-    setCleanResult(null);
+    if (clearResult) setCleanResult(null);
     try {
       const results: ProjectCleanableInfo[] = [];
       for (const p of projects) {
-        if (p.exists_on_disk) {
+        if (p.exists_on_disk && p.status !== 'active') {
           const info = await api.analyzeCleanable(p.id, p.name, p.path);
           if (info.items.length > 0) {
             results.push(info);
@@ -97,10 +97,16 @@ export const DiskCleanerModal: React.FC = () => {
     setCleaning(true);
     try {
       const res = await api.cleanProjectTargets(Array.from(selectedPaths));
+      await scanAllProjects(false);
       setCleanResult(res);
-      await scanAllProjects();
     } catch (e) {
       console.error('Erro ao limpar arquivos:', e);
+      setCleanResult({
+        success: false,
+        bytes_freed: 0,
+        cleaned_count: 0,
+        errors: [e instanceof Error ? e.message : String(e)],
+      });
     } finally {
       setCleaning(false);
     }
@@ -138,7 +144,7 @@ export const DiskCleanerModal: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={scanAllProjects}
+              onClick={() => scanAllProjects()}
               disabled={loading || cleaning}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 rounded text-xs transition-colors disabled:opacity-50"
             >
@@ -169,20 +175,33 @@ export const DiskCleanerModal: React.FC = () => {
 
         {/* Clean Result Alert */}
         {cleanResult && (
-          <div className="mx-6 mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2 text-zinc-200">
-              <IconCheck size={16} className="text-zinc-400" />
-              <span>
-                Limpeza concluída! <strong>{formatBytes(cleanResult.bytes_freed)}</strong> liberados com sucesso em {cleanResult.cleaned_count} itens.
-              </span>
+          <div className="mx-6 mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-xs">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-zinc-200">
+                {cleanResult.success ? (
+                  <IconCheck size={16} className="text-zinc-400 shrink-0" />
+                ) : (
+                  <IconAlertTriangle size={16} className="text-zinc-300 shrink-0" />
+                )}
+                <span>
+                  {cleanResult.success ? 'Limpeza concluída.' : cleanResult.cleaned_count > 0 ? 'Limpeza concluída parcialmente.' : 'A limpeza falhou.'}{' '}
+                  <strong>{formatBytes(cleanResult.bytes_freed)}</strong> liberados em {cleanResult.cleaned_count} itens.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCleanResult(null)}
+                className="text-zinc-500 hover:text-zinc-300 shrink-0"
+                title="Dispensar resultado"
+              >
+                <IconX size={14} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setCleanResult(null)}
-              className="text-zinc-500 hover:text-zinc-300"
-            >
-              <IconX size={14} />
-            </button>
+            {cleanResult.errors.length > 0 && (
+              <ul className="mt-2 pl-6 text-zinc-400 space-y-1">
+                {cleanResult.errors.map((error, index) => <li key={`${index}-${error}`}>{error}</li>)}
+              </ul>
+            )}
           </div>
         )}
 

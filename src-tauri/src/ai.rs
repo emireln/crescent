@@ -38,7 +38,7 @@ pub fn build_system_context(
     ctx.push_str("- Criador e Mantenedor: Emir Lima Neto (GitHub: https://github.com/emireln | Website: https://emirln.com | Apoio: https://buymeacoffee.com/emireln).\n\n");
 
     ctx.push_str("SOBRE O CRESCENT:\n");
-    ctx.push_str("- O Crescent é um aplicativo desktop nativo para Windows (100% offline, seguro, sem telemetria).\n");
+    ctx.push_str("- O Crescent é um aplicativo desktop nativo para Windows; os dados do app ficam locais e não há telemetria. A IA pode usar Ollama local ou provedores em nuvem configurados pelo usuário.\n");
     ctx.push_str("- Stack Tecnológica: Backend em Rust (Tauri v2), Persistência em SQLite (%AppData%/Crescent/crescent.db), Frontend em React 19 + TypeScript + Tailwind CSS v4 e ícones @tabler/icons-react.\n");
     ctx.push_str("- Recursos Integrados do Crescent:\n");
     ctx.push_str("  1. Port Sentinel: Monitoramento TCP em tempo real e encerramento forçado (Kill) de processos bloqueando portas locais.\n");
@@ -51,7 +51,7 @@ pub fn build_system_context(
     ctx.push_str("  8. Windows System Tray: Acesso rápido na bandeja do sistema.\n\n");
 
     if high_density {
-        ctx.push_str("DIRETRIZES DE RESPOSTA (ALTA DENSIDADE / HIGH-DENSITY TOKEN OPTIMIZER):\n");
+        ctx.push_str("DIRETRIZES DE RESPOSTA TÉCNICA E OBJETIVA:\n");
         ctx.push_str("- Seja ultra-direto, técnico, inteligente e preciso.\n");
         ctx.push_str("- Elimine saudações prolixas ou formalismos desnecessários.\n");
         ctx.push_str("- Forneça blocos de código completos, comandos de terminal prontos para execução e soluções arquiteturais limpas.\n");
@@ -85,13 +85,54 @@ pub fn build_system_context(
             ctx.push_str(&format!("Anotações do Projeto:\n{}\n", p.notes));
         }
 
-        // Add snippet of README if available
         let proj_path = Path::new(&p.path);
         let readme_p = proj_path.join("README.md");
         if readme_p.exists() {
             if let Ok(content) = fs::read_to_string(&readme_p) {
-                let snippet: String = content.lines().take(40).collect::<Vec<&str>>().join("\n");
+                let snippet: String = content.chars().take(8_000).collect();
                 ctx.push_str(&format!("Trecho do README.md:\n```markdown\n{}\n```\n", snippet));
+            }
+        }
+
+        const MANIFESTS: &[&str] = &[
+            "package.json", "Cargo.toml", "pyproject.toml", "requirements.txt", "go.mod",
+            "composer.json", "pom.xml", "build.gradle", "build.gradle.kts", "Gemfile",
+            "pubspec.yaml", "Package.swift", "Dockerfile",
+        ];
+        let mut remaining_manifest_chars = 24_000usize;
+        for manifest in MANIFESTS {
+            if remaining_manifest_chars == 0 {
+                break;
+            }
+            if let Ok(content) = fs::read_to_string(proj_path.join(manifest)) {
+                if content.trim().is_empty() {
+                    continue;
+                }
+                let excerpt: String = content
+                    .chars()
+                    .take(remaining_manifest_chars.min(6_000))
+                    .collect();
+                remaining_manifest_chars = remaining_manifest_chars.saturating_sub(excerpt.chars().count());
+                ctx.push_str(&format!("Manifesto local ({manifest}):\n```text\n{excerpt}\n```\n"));
+            }
+        }
+
+        if let Ok(entries) = fs::read_dir(proj_path) {
+            let mut names = entries
+                .flatten()
+                .filter_map(|entry| {
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    if name.starts_with('.') || name == "node_modules" || name == "target" {
+                        return None;
+                    }
+                    let suffix = if entry.file_type().ok()?.is_dir() { "/" } else { "" };
+                    Some(format!("{name}{suffix}"))
+                })
+                .collect::<Vec<_>>();
+            names.sort();
+            names.truncate(80);
+            if !names.is_empty() {
+                ctx.push_str(&format!("Estrutura de primeiro nível (até 80 itens): {}\n", names.join(", ")));
             }
         }
 
@@ -202,7 +243,7 @@ pub fn send_chat_to_provider(
                 .filter(|s| !s.is_empty())
                 .ok_or("Chave de API do Google Gemini não configurada. Configure nas Configurações.")?;
 
-            let model_clean = if model.is_empty() { "gemini-2.5-flash" } else { model };
+            let model_clean = if model.is_empty() { "gemini-3.8-flash" } else { model };
             let url = format!(
                 "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
                 model_clean, api_key
@@ -225,10 +266,7 @@ pub fn send_chat_to_provider(
                 "systemInstruction": {
                     "parts": [{ "text": system_prompt }]
                 },
-                "contents": contents,
-                "generationConfig": {
-                    "temperature": 0.2
-                }
+                "contents": contents
             });
 
             let resp = client
@@ -285,10 +323,15 @@ pub fn send_chat_to_provider(
 
             let model_clean = if model.is_empty() { "gpt-4o" } else { model };
             let url = "https://api.openai.com/v1/chat/completions";
+            let system_role = if model_clean.starts_with("gpt-5") || model_clean.starts_with('o') {
+                "developer"
+            } else {
+                "system"
+            };
 
             let mut messages = Vec::new();
             messages.push(serde_json::json!({
-                "role": "system",
+                "role": system_role,
                 "content": system_prompt
             }));
 
@@ -306,8 +349,7 @@ pub fn send_chat_to_provider(
 
             let payload = serde_json::json!({
                 "model": model_clean,
-                "messages": messages,
-                "temperature": 0.2
+                "messages": messages
             });
 
             let resp = client
@@ -352,7 +394,7 @@ pub fn send_chat_to_provider(
                 .filter(|s| !s.is_empty())
                 .ok_or("Chave de API do DeepSeek não configurada. Configure nas Configurações.")?;
 
-            let model_clean = if model.is_empty() { "deepseek-chat" } else { model };
+            let model_clean = if model.is_empty() { "deepseek-flash" } else { model };
             let url = "https://api.deepseek.com/chat/completions";
 
             let mut messages = Vec::new();
@@ -421,7 +463,7 @@ pub fn send_chat_to_provider(
                 .filter(|s| !s.is_empty())
                 .ok_or("Chave de API do Anthropic Claude não configurada. Configure nas Configurações.")?;
 
-            let model_clean = if model.is_empty() { "claude-3-7-sonnet-20250219" } else { model };
+            let model_clean = if model.is_empty() { "claude-sonnet-5" } else { model };
             let url = "https://api.anthropic.com/v1/messages";
 
             let mut messages = Vec::new();
@@ -441,8 +483,7 @@ pub fn send_chat_to_provider(
                 "model": model_clean,
                 "max_tokens": 4096,
                 "system": system_prompt,
-                "messages": messages,
-                "temperature": 0.2
+                "messages": messages
             });
 
             let resp = client
